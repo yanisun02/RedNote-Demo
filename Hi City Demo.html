@@ -1,0 +1,2545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hi City! · Demo Walkthrough</title>
+<style>
+  :root{
+    --red:#ff2442;
+    --red-deep:#e8133a;
+    --red-soft:#fff0f3;
+    --red-line:#ffd0d9;
+    --ink:#1f1f22;
+    --sub:#8a8a90;
+    --bg:#f6f6f6;
+    --paper:#ffffff;
+    --hairline:rgba(0,0,0,.06);
+    --green:#bef26b;
+    --green-deep:#7bc04c;
+    --green-soft:#eaf6da;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif;
+    background:#f3f1ec;
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  /* ============ STAGE / LAYOUT ============ */
+  .stage{
+    position:relative;
+    width:100vw;
+    min-height:100vh;
+    background:
+      radial-gradient(1200px 700px at 80% 10%, #ffe5ec 0%, transparent 60%),
+      radial-gradient(900px 600px at 10% 90%, #fff4dc 0%, transparent 60%),
+      #f3f1ec;
+  }
+  /* Sticky workspace where the phone lives */
+  .workspace{
+    position:sticky;
+    top:0;
+    height:100vh;
+    width:100%;
+    overflow:hidden;
+    display:grid;
+    grid-template-columns: 1fr 460px 1fr;
+    align-items:center;
+  }
+  /* Left rail */
+  .left-rail{
+    padding:0 56px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-self:stretch;
+    padding-top:80px;
+    padding-bottom:80px;
+    gap:28px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    font-weight:900; font-size:18px; letter-spacing:-.01em;
+  }
+  .brand-dot{
+    width:28px; height:28px; border-radius:8px;
+    background:linear-gradient(135deg,#ff5577,#ff2442 60%,#c8154e);
+    box-shadow:0 6px 14px rgba(255,36,66,.35);
+  }
+  .brand small{
+    font-weight:600; font-size:11px; color:var(--sub); letter-spacing:.32em; text-transform:uppercase;
+    display:block; margin-top:2px;
+  }
+  .chapter-num{
+    font-size:13px; letter-spacing:.32em; color:var(--red);
+    font-weight:800; text-transform:uppercase;
+  }
+  .chapter-title{
+    font-size:54px; line-height:1.05; font-weight:900; letter-spacing:-.025em;
+    color:#1d1d1f;
+    text-wrap:balance;
+  }
+  .chapter-title em{
+    font-style:normal;
+    background:linear-gradient(120deg, transparent 0 6%, #ffd5dd 6% 94%, transparent 94%);
+    background-size:100% 38%;
+    background-repeat:no-repeat;
+    background-position:0 78%;
+    padding:0 4px;
+  }
+  .chapter-desc{
+    font-size:16px; line-height:1.7; color:#3a3a40; max-width:380px;
+  }
+  .chapter-desc .hl{
+    color:var(--red); font-weight:700;
+  }
+  .chapter-cues{
+    display:flex; flex-direction:column; gap:10px; margin-top:6px;
+  }
+  .cue{
+    display:flex; align-items:center; gap:12px;
+    font-size:13px; color:#444; font-weight:600;
+  }
+  .cue-dot{
+    width:18px; height:18px; border-radius:50%;
+    background:#fff; border:2px solid var(--red);
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; color:var(--red); font-weight:900;
+    flex-shrink:0;
+  }
+  /* Right rail */
+  .right-rail{
+    padding:0 56px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:18px;
+  }
+  .step-rail{
+    display:flex; flex-direction:column; gap:14px;
+  }
+  .step-row{
+    display:flex; align-items:flex-start; gap:14px;
+    padding:14px 16px; border-radius:16px;
+    background:rgba(255,255,255,.55);
+    border:1px solid rgba(0,0,0,.04);
+    cursor:pointer;
+    transition: all .35s ease;
+    backdrop-filter: blur(8px);
+  }
+  .step-row.on{
+    background:#fff;
+    border-color:var(--red-line);
+    box-shadow:0 12px 30px rgba(255,36,66,.12);
+    transform:translateX(-4px);
+  }
+  .step-row.done{ opacity:.6; }
+  .step-row .num{
+    width:28px; height:28px; border-radius:50%;
+    background:#eee; color:#999; font-weight:900; font-size:12px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    transition: all .3s;
+  }
+  .step-row.on .num{ background:var(--red); color:#fff; }
+  .step-row.done .num{ background:#1d1d1f; color:#fff; }
+  .step-row .body{ flex:1; min-width:0;}
+  .step-row .body h4{ font-size:14px; font-weight:800; line-height:1.3; }
+  .step-row .body p{ font-size:12px; color:var(--sub); margin-top:3px; line-height:1.45; }
+  .right-rail .controls{
+    display:flex; align-items:center; gap:10px; margin-top:8px;
+  }
+  .ctrl-btn{
+    height:38px; padding:0 16px; border-radius:999px;
+    background:#1d1d1f; color:#fff; font-size:13px; font-weight:700;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .ctrl-btn.ghost{ background:#fff; color:#1d1d1f; border:1px solid #e2e2e3; }
+  .ctrl-btn .ico{ width:14px; height:14px; display:inline-flex; align-items:center; justify-content:center; }
+  .progress-track{
+    height:3px; background:#e7e3da; border-radius:99px; overflow:hidden;
+    margin-top:10px;
+  }
+  .progress-fill{
+    height:100%; background:var(--red);
+    transition: width .35s ease;
+  }
+
+  /* ============ PHONE ============ */
+  .phone-wrap{
+    position:relative;
+    width:420px; height:860px;
+    margin:0 auto;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .phone{
+    position:relative;
+    width:380px; height:780px;
+    border-radius:48px;
+    background:#1a1a1d;
+    padding:14px;
+    box-shadow:
+      0 60px 120px rgba(0,0,0,.28),
+      0 18px 40px rgba(0,0,0,.18),
+      inset 0 0 0 1px rgba(255,255,255,.06);
+  }
+  .phone::before{
+    content:""; position:absolute; left:50%; top:24px; transform:translateX(-50%);
+    width:110px; height:28px; border-radius:18px; background:#0c0c0e; z-index:30;
+  }
+  .screen{
+    position:relative;
+    width:100%; height:100%;
+    background:#fff; border-radius:36px; overflow:hidden;
+  }
+  .status-bar{
+    position:absolute; top:0; left:0; right:0; height:46px; z-index:20;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 26px 0;
+    font-size:14px; font-weight:700; color:#1d1d1f;
+    pointer-events:none;
+  }
+  .status-bar .right-icons{ display:flex; gap:6px; align-items:center; font-size:12px; }
+  .status-bar svg{ width:14px; height:10px; }
+  /* Top tabs */
+  .top-tabs{
+    position:absolute; top:46px; left:0; right:0; height:52px;
+    display:flex; align-items:center; justify-content:center; gap:34px;
+    z-index:18;
+    background:#fff;
+    border-bottom:1px solid #f3f3f4;
+  }
+  .top-tab{
+    font-size:18px; color:#999; font-weight:700;
+    position:relative; padding:6px 4px;
+    cursor:pointer;
+  }
+  .top-tab.active{ color:#1d1d1f; font-size:18px; font-weight:900;}
+  .top-tab.active::after{
+    content:""; position:absolute; left:50%; bottom:-4px; transform:translateX(-50%);
+    width:14px; height:3px; background:var(--red); border-radius:2px;
+  }
+  .top-tab.city{
+    color:#4c4c52; font-weight:700; font-size:15px;
+    display:flex; align-items:center; gap:3px;
+  }
+  .top-tab.city .arrow{ font-size:10px; color:#8b8b90;}
+  .top-bar-icon{
+    position:absolute; top:50%; transform:translateY(-50%);
+    width:28px; height:28px;
+    display:flex; align-items:center; justify-content:center;
+    color:#111318;
+    z-index:2;
+  }
+  .top-bar-icon.entry{ left:12px; }
+  .top-bar-icon.search{ right:12px; }
+  .top-bar-icon svg{ width:23px; height:23px; stroke:currentColor; fill:none; stroke-width:2; }
+  /* City picker overlay */
+  .city-picker{
+    position:absolute; left:0; right:0; top:46px; bottom:0;
+    background:#fff;
+    z-index:26;
+    transform:translateX(102%);
+    transition:transform .35s ease;
+    display:flex;
+    flex-direction:column;
+  }
+  .city-picker.on{ transform:translateX(0); }
+  .city-head{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px 8px;
+    border-bottom:1px solid #f4f4f4;
+  }
+  .city-back{
+    width:26px; height:26px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px; color:#1f1f22; flex-shrink:0;
+  }
+  .city-search{
+    flex:1; height:34px; border-radius:18px;
+    background:#f5f5f5; color:#b1b1b6;
+    font-size:14px; display:flex; align-items:center; padding:0 12px;
+  }
+  .city-main-tabs{
+    display:flex; gap:18px; padding:10px 14px 0;
+    border-bottom:1px solid #f6f6f6;
+  }
+  .city-main-tab{
+    padding:8px 0; font-size:17px; font-weight:700; color:#8e8e93;
+    position:relative;
+  }
+  .city-main-tab.on{ color:#1f1f22; font-weight:800; }
+  .city-main-tab.on::after{
+    content:""; position:absolute; left:0; right:0; bottom:-1px; height:3px;
+    border-radius:2px; background:var(--red);
+  }
+  .city-panels{ flex:1; position:relative; overflow:hidden; }
+  .city-panel{
+    position:absolute; inset:0; opacity:0; pointer-events:none;
+    transition:opacity .2s ease;
+    overflow:auto;
+    scrollbar-width:none;
+  }
+  .city-panel::-webkit-scrollbar{ display:none; }
+  .city-panel.on{ opacity:1; pointer-events:auto; }
+  .city-block{
+    padding:14px;
+    border-bottom:1px solid #f7f7f8;
+  }
+  .city-block h4{
+    font-size:18px; font-weight:800; color:#1f1f22; margin-bottom:10px;
+  }
+  .city-current{
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:88px; height:42px; padding:0 16px;
+    border-radius:11px; border:1px solid var(--red-line);
+    color:var(--red); background:#fff7f9; font-size:15px; font-weight:800;
+  }
+  .city-grid{
+    display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px;
+  }
+  .city-chip{
+    height:38px; border-radius:10px; background:#f8f8f8;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; color:#2d2d31; font-weight:700;
+    border:1px solid transparent;
+  }
+  .city-chip.active{
+    color:var(--red); border-color:var(--red-line); background:#fff7f9;
+  }
+  .city-alpha{
+    padding:14px;
+  }
+  .city-alpha h5{
+    font-size:16px; font-weight:800; color:#9a9aa0;
+    margin-bottom:10px;
+  }
+  .city-row{
+    font-size:15px; color:#1f1f22; font-weight:600;
+    padding:10px 0;
+    border-bottom:1px solid #f8f8f8;
+  }
+  .city-overseas{
+    display:flex; min-height:100%;
+  }
+  .continent-list{
+    width:92px; border-right:1px solid #f3f3f4; background:#fcfcfc;
+    padding-top:8px; flex-shrink:0;
+  }
+  .continent-item{
+    height:45px; display:flex; align-items:center; justify-content:center;
+    font-size:16px; color:#3a3a40; font-weight:700; position:relative;
+  }
+  .continent-item.on{ color:var(--red); background:#fff; }
+  .continent-item.on::before{
+    content:""; position:absolute; left:0; top:8px; bottom:8px; width:3px;
+    background:var(--red); border-radius:2px;
+  }
+  .continent-content{ flex:1; min-width:0; }
+  /* Bottom nav */
+  .bottom-nav{
+    position:absolute; bottom:0; left:0; right:0; height:64px;
+    display:flex; align-items:center; justify-content:space-around;
+    background:#fff; border-top:1px solid #f0f0f0; z-index:18;
+    padding-bottom:6px;
+  }
+  .nav-item{ font-size:11px; color:#999; display:flex; flex-direction:column; align-items:center; gap:2px; font-weight:600;}
+  .nav-item.add{
+    width:42px; height:30px; border-radius:8px; background:var(--red); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:22px;
+    margin-top:-6px;
+  }
+  .nav-item.active{ color:#1d1d1f; font-weight:800;}
+
+  /* ============ SCREEN STATES — stacked layers ============ */
+  .scene{
+    position:absolute; inset:0; opacity:0;
+    transition: opacity .5s ease;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .scene.on{ opacity:1; pointer-events:auto; }
+
+  .scene-body{
+    position:absolute; left:0; right:0; top:94px; bottom:64px;
+    overflow:auto;
+    padding:10px 12px 18px;
+    background:#f8f8f8;
+    scrollbar-width:none;
+  }
+  .scene-body::-webkit-scrollbar{display:none}
+
+  /* ---------- Persona scene (S1) ---------- */
+  .persona-banner{
+    background:linear-gradient(160deg,#fff5f7 0%,#fff 60%,#fff3f6 100%);
+    border:1px solid var(--red-line);
+    border-radius:18px; padding:14px 14px 12px;
+    box-shadow:0 6px 16px rgba(255,36,66,.08);
+  }
+  .persona-banner h3{ font-size:18px; font-weight:900; }
+  .persona-banner p{ font-size:12px; color:#666; margin-top:6px; line-height:1.55;}
+  .persona-tabs{
+    display:flex; gap:4px; padding:4px; border-radius:12px;
+    background:#fff4f7; border:1px solid var(--red-line);
+    margin-top:10px;
+  }
+  .persona-tab{
+    flex:1; padding:8px; border-radius:9px;
+    text-align:center; font-size:13px; font-weight:700; color:#888;
+  }
+  .persona-tab.on{ background:#fff; color:#1d1d1f; box-shadow:0 2px 6px rgba(0,0,0,.05);}
+  .persona-card{
+    margin-top:10px; background:#fff; border:1px solid #ececec; border-radius:16px;
+    padding:14px 14px 8px;
+  }
+  .persona-card h4{ font-size:14px; font-weight:800;}
+  .persona-card .hint{ font-size:11px; color:#a0a0a6; margin:2px 0 8px;}
+  .persona-card + .persona-card{ margin-top:10px;}
+  .ptags{ display:flex; flex-wrap:wrap; gap:6px;}
+  .ptag{
+    padding:6px 12px; border-radius:999px;
+    background:#fafafa; border:1px solid #e6e6e8; color:#3b3b40;
+    font-size:12px; transition: all .25s;
+  }
+  .ptag.on{
+    border-color:#ff6d87; background:#fff3f6; color:var(--red); font-weight:700;
+  }
+  .persona-textarea{
+    margin-top:8px; width:100%; min-height:88px;
+    border:1px solid var(--red-line); border-radius:12px;
+    padding:10px; font-size:13px; line-height:1.55;
+    background:#fffaf9;
+    color:#333;
+  }
+  .persona-textarea.typing::after{
+    content:""; display:inline-block; width:1px; height:14px; background:var(--red);
+    animation:caret 1s steps(1) infinite;
+  }
+  @keyframes caret{ 50%{opacity:0} }
+  .persona-footer{
+    position:sticky; bottom:0; padding:10px 0 4px; background:linear-gradient(to top, #f8f8f8 60%, transparent);
+    display:flex; gap:10px; margin-top:14px;
+  }
+  .pbtn{ flex:1; height:42px; border-radius:999px; font-size:14px; font-weight:800;}
+  .pbtn.ghost{ flex:0 0 90px; background:#fff; border:1px solid #e1e1e3; color:#666;}
+  .pbtn.primary{ background:var(--red); color:#fff; box-shadow:0 6px 16px rgba(255,36,66,.3);}
+
+  /* keywords overlay */
+  .kw-overlay{
+    position:absolute; left:0; right:0; bottom:0; top:0;
+    background:#f8f8f8; padding:14px 14px;
+    transform:translateY(102%); transition: transform .45s cubic-bezier(.22,1,.36,1);
+    overflow:auto;
+    z-index:22;
+  }
+  .scene.on.kw-active .kw-overlay{ transform:translateY(0);}
+  .kw-top{
+    height:38px; border-radius:10px; background:#fff;
+    display:flex; align-items:center; padding:0 12px;
+    color:#2f2f35; font-size:22px; font-weight:800;
+  }
+  .kw-top span{ font-size:14px; margin-left:4px; }
+  .kw-overlay h3{ font-size:18px; font-weight:900; margin-top:6px;}
+  .kw-overlay h3 small{ font-weight:600; color:#999; font-size:12px; margin-left:6px;}
+  .kw-overlay .kw-set{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
+  .kw-chip{
+    padding:6px 12px; border-radius:999px;
+    background:#fff3f6; border:1px solid var(--red-line); color:#c83256;
+    font-size:12px; font-weight:700;
+    animation: kwIn .5s both;
+  }
+  @keyframes kwIn{
+    from{ transform:translateY(8px) scale(.9); opacity:0;}
+    to{ transform:none; opacity:1;}
+  }
+  .scene-list{ display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+  .scene-item{
+    background:#fff; border:1px solid #e7e7e8; border-radius:14px;
+    padding:12px 14px; font-size:14px; font-weight:700; color:#222;
+  }
+  .scene-item.on{
+    border-color:#ff6d87; background:#fff3f6; color:#c83256;
+  }
+  .scene-item .check{
+    float:right; color:var(--red); font-size:14px; font-weight:900;
+  }
+  .kw-cta{
+    margin-top:14px; height:48px; width:100%; border-radius:999px;
+    background:var(--red); color:#fff; font-weight:900; font-size:15px;
+    box-shadow:0 8px 22px rgba(255,36,66,.32);
+  }
+
+  /* ---------- Discover feed (S2) ---------- */
+  .discover-strip{
+    display:flex; gap:8px; overflow-x:auto; padding-bottom:6px;
+  }
+  .discover-strip::-webkit-scrollbar{display:none}
+  .substrip-pill{
+    flex-shrink:0; padding:7px 14px; border-radius:999px;
+    border:1px solid #e8e8e8; background:#fff; color:#333;
+    font-size:12px; font-weight:700;
+  }
+  .substrip-pill.on{ border-color:var(--red); color:var(--red);}
+  .hero-banner{
+    margin-top:10px; border-radius:16px; overflow:hidden;
+    background:repeating-linear-gradient(-35deg,#ff4f76,#ff4f76 12px,#ff2442 12px,#ff2442 24px);
+    padding:14px; color:#fff; min-height:140px; position:relative;
+  }
+  .hero-banner .pill{
+    display:inline-flex; align-items:center; gap:5px;
+    background:#fff; color:var(--red); font-size:11px; font-weight:800;
+    padding:4px 10px; border-radius:999px;
+  }
+  .hero-banner h2{
+    font-size:30px; line-height:1.1; font-weight:900; margin-top:14px;
+    text-shadow:0 2px 8px rgba(0,0,0,.18);
+  }
+  .hero-banner .meta{
+    margin-top:6px; font-size:11px; font-weight:700; color:rgba(255,255,255,.9);
+  }
+  .hero-banner .cta{
+    position:absolute; right:14px; bottom:14px;
+    background:#fff; color:var(--red); font-weight:800; font-size:13px;
+    padding:8px 14px; border-radius:999px;
+    box-shadow:0 4px 12px rgba(0,0,0,.18);
+  }
+  .waterfall{
+    margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:8px;
+    align-items:start;
+  }
+  .note{
+    background:#fff; border-radius:14px; overflow:hidden;
+    border:1px solid #f0f0f0; box-shadow:0 4px 12px rgba(0,0,0,.04);
+  }
+  .note-cover{
+    aspect-ratio: 3/4; background:#eee;
+  }
+  .note-cover.tall{ aspect-ratio: 3/5;}
+  .note-cover.short{ aspect-ratio: 4/3;}
+  .note-cover.quote{
+    aspect-ratio: 3/4;
+    background:linear-gradient(150deg,#ff4f6d,#ff2442 58%,#e41c59);
+    display:flex; align-items:flex-end; padding:14px;
+  }
+  .note-cover.quote .qt{ font-size:14px; line-height:1.5; color:#fff; font-weight:800;}
+  .note-cover.cf1{ background:linear-gradient(135deg,#ffd6e2,#ffa7be);}
+  .note-cover.cf2{ background:linear-gradient(135deg,#ffe5d2,#ffc69c);}
+  .note-cover.cf3{ background:linear-gradient(150deg,#d8f3c4,#a8d889);}
+  .note-cover.cf4{ background:linear-gradient(135deg,#ffeaf0,#ffd5df);}
+  .note-cover.cf5{ background:linear-gradient(135deg,#dee5ff,#a9b9ff);}
+  .note-body{ padding:8px 10px 10px;}
+  .note-title{ font-size:12.5px; line-height:1.4; color:#1f1f22; font-weight:600; min-height:34px;}
+  .note-tag{
+    display:inline-block; margin-top:5px; padding:3px 7px; border-radius:6px;
+    background:#fff1f4; border:1px solid var(--red-line); color:var(--red); font-size:10px;
+  }
+  .note-meta{
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:11px; color:#8a8a90; margin-top:6px;
+  }
+  .note-meta .author{ display:flex; align-items:center; gap:4px;}
+  .note-meta .author i{ width:14px; height:14px; border-radius:50%; background:#ffb6c8; display:inline-block;}
+  .note-meta .like{
+    display:inline-flex; align-items:center; gap:3px; font-weight:700;
+  }
+  .note-meta .like.liked{ color:var(--red);}
+  .note-meta .like .heart{
+    display:inline-block; transition: transform .25s;
+  }
+  .note-meta .like.liked .heart{ transform:scale(1.3);}
+
+  /* ---------- Map / Routes scene (S3) ---------- */
+  .map-screen{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(700px 500px at 50% 40%, #fbf6e8 0%, #f3eed4 100%);
+  }
+  .map-streets{
+    position:absolute; inset:0; pointer-events:none;
+  }
+  .map-blocks .block{
+    position:absolute; background:rgba(190,242,107,.45); border-radius:14px;
+  }
+  .map-pin{
+    position:absolute; transform:translate(-50%,-100%);
+    display:flex; flex-direction:column; align-items:center; gap:0;
+  }
+  .map-pin .label{
+    background:#1d1d1f; color:#fff; padding:5px 10px 6px;
+    border-radius:999px; font-size:11px; font-weight:800;
+    display:flex; align-items:center; gap:4px; white-space:nowrap;
+    box-shadow:0 4px 10px rgba(0,0,0,.18);
+  }
+  .map-pin .label.you{ background:#1d1d1f; color:#fff;}
+  .map-pin .label.hot{
+    background:linear-gradient(135deg,#ff7a90,#ff2442);
+    color:#fff;
+  }
+  .map-pin .label.outline{
+    background:#fff; color:#1d1d1f; border:2px solid currentColor;
+  }
+  .map-pin .label.outline.green{ color:#7bc04c;}
+  .map-pin .label.outline.purple{ color:#a06bff;}
+  .map-pin .label.outline.dark{ color:#1d1d1f;}
+  .map-pin .tail{
+    width:0; height:0;
+    border-left:6px solid transparent;
+    border-right:6px solid transparent;
+    border-top:7px solid currentColor;
+    margin-top:-1px;
+  }
+  .map-pin .tail.dark{ border-top-color:#1d1d1f;}
+  .map-pin .tail.hot{ border-top-color:#ff2442;}
+  .map-pin .tail.green{ border-top-color:#7bc04c;}
+  .map-pin .tail.purple{ border-top-color:#a06bff;}
+  .map-pin .tail.white{ border-top-color:#fff;}
+  /* Route segmented toggle */
+  .route-toggle{
+    position:absolute; top:154px; left:12px; right:12px;
+    z-index:14;
+    background:rgba(255,255,255,.92);
+    backdrop-filter: blur(10px);
+    border:1px solid rgba(0,0,0,.06);
+    border-radius:999px;
+    padding:4px;
+    display:flex; gap:4px;
+    box-shadow:0 8px 22px rgba(0,0,0,.08);
+  }
+  .route-toggle button{
+    flex:1;
+    padding:7px 8px; border-radius:999px;
+    font-size:12px; font-weight:800; color:#666;
+    text-align:center;
+    transition: all .3s;
+  }
+  .route-toggle button.on{
+    background:#1d1d1f; color:#fff;
+  }
+  .route-toggle button.liked-tab .dot{
+    display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--red);
+    margin-right:4px; vertical-align:middle;
+  }
+  .route-toggle button.custom-tab{
+    border:1px solid transparent;
+  }
+  .map-substrip{
+    position:absolute; top:108px; left:12px; right:12px;
+    z-index:15;
+    display:flex; gap:8px; overflow-x:auto;
+    padding-bottom:4px;
+  }
+  .map-substrip::-webkit-scrollbar{ display:none; }
+  .route-lines{
+    position:absolute; inset:0; z-index:11; pointer-events:none;
+  }
+  .route-lines polyline{
+    fill:none; stroke:#ff4a66; stroke-width:5; stroke-linecap:round; stroke-linejoin:round;
+    stroke-dasharray:10 8; opacity:.9;
+  }
+  .map-pin.selectable{ cursor:pointer; z-index:13; }
+  .map-pin.selectable .label{
+    background:#fff; color:#222; border:1px solid #e6e6e8;
+  }
+  .map-pin.selectable.selected .label{
+    background:linear-gradient(135deg,#ff7a90,#ff2442); color:#fff; border-color:transparent;
+  }
+  .map-pin.selectable .label .idx{
+    display:none;
+    width:16px; height:16px; border-radius:50%;
+    background:#fff; color:var(--red); font-size:10px; font-weight:900;
+    align-items:center; justify-content:center;
+  }
+  .map-pin.selectable.selected .label .idx{ display:inline-flex; }
+  .map-pin.liked-pick{ cursor:pointer; z-index:13; }
+  .map-pin.liked-pick.selected .label{
+    box-shadow:0 0 0 2px rgba(255,255,255,.9), 0 0 0 4px rgba(255,36,66,.55);
+  }
+  .itinerary-sheet{
+    position:absolute; left:0; right:0; bottom:64px;
+    z-index:14; background:#fff;
+    border-radius:24px 24px 0 0;
+    box-shadow:0 -10px 28px rgba(0,0,0,.12);
+    padding:10px 12px 12px;
+    max-height:330px;
+    overflow:auto;
+  }
+  .itinerary-sheet::-webkit-scrollbar{ display:none; }
+  .itinerary-handle{
+    width:52px; height:6px; border-radius:999px; background:#e7e7e8;
+    margin:0 auto 10px;
+  }
+  .itinerary-head{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .itinerary-head h3{ font-size:16px; font-weight:900; }
+  .itinerary-head .spark{
+    height:34px; padding:0 12px; border-radius:999px;
+    border:1px solid var(--red-line); color:var(--red); background:#fff6f8;
+    font-size:14px; font-weight:800; display:flex; align-items:center;
+  }
+  .itinerary-summary{
+    margin-top:8px; color:#666; font-size:12px; line-height:1.5; font-weight:600;
+  }
+  .itinerary-controls{
+    margin-top:9px; display:flex; align-items:center; gap:8px;
+    font-size:13px; color:#666; font-weight:700;
+  }
+  .itinerary-time{
+    border:1px solid #e8e8ea; border-radius:10px; background:#fff;
+    height:34px; min-width:96px; padding:0 12px;
+    display:flex; align-items:center; color:#222; font-weight:800;
+  }
+  .itinerary-slider{
+    flex:1; height:6px; border-radius:999px; background:#e5e5e7; position:relative;
+  }
+  .itinerary-slider::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:40%;
+    border-radius:999px; background:var(--red);
+  }
+  .itinerary-slider::after{
+    content:""; position:absolute; left:38%; top:50%; transform:translateY(-50%);
+    width:20px; height:20px; border-radius:50%; background:var(--red);
+  }
+  .itinerary-empty{
+    margin-top:12px; border:1px dashed #e7e7e9; border-radius:12px;
+    background:#fafafa; color:#9a9aa0; font-size:13px; line-height:1.5;
+    text-align:center; padding:14px 10px;
+  }
+  .itinerary-list{ margin-top:10px; display:flex; flex-direction:column; gap:8px; }
+  .trip-item{
+    border:1px solid #ececef; border-radius:12px; background:#fff; padding:9px 10px;
+  }
+  .trip-item h4{ font-size:14px; font-weight:900; }
+  .trip-item p{ font-size:12px; color:#7a7a80; margin-top:4px; }
+  .custom-gen{
+    margin-top:10px; width:100%; height:44px; border-radius:999px;
+    background:var(--red); color:#fff; font-size:16px; font-weight:900;
+  }
+  /* Route card */
+  .route-card{
+    position:absolute; left:12px; right:12px; bottom:78px;
+    background:#fff; border-radius:18px;
+    padding:12px;
+    box-shadow:0 18px 36px rgba(0,0,0,.12);
+    display:flex; gap:10px; align-items:center;
+    z-index:12;
+    transition: transform .5s cubic-bezier(.22,1,.36,1);
+  }
+  .route-card .thumb{
+    width:74px; height:74px; border-radius:14px; flex-shrink:0;
+    background:repeating-linear-gradient(45deg,#bef26b,#bef26b 8px,#a8d955 8px,#a8d955 16px);
+    position:relative; overflow:hidden;
+  }
+  .route-card .thumb .badge{
+    position:absolute; top:6px; left:6px;
+    background:#fff; padding:3px 6px; border-radius:6px;
+    font-size:10px; font-weight:800;
+  }
+  .route-card .info{ flex:1; min-width:0;}
+  .route-card .info h4{ font-size:16px; font-weight:900;}
+  .route-card .info .row{
+    display:flex; align-items:center; gap:8px; font-size:11px; color:#666; margin-top:3px; font-weight:600;
+  }
+  .route-card .info .pin-emoji{ color:var(--red);}
+  .route-card .signup{
+    margin-top:6px; height:30px; background:var(--green); color:#1d1d1f;
+    border-radius:999px; font-size:12px; font-weight:900;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .route-card .corner-stripe{
+    width:46px; height:74px; border-radius:14px; flex-shrink:0;
+    background:repeating-linear-gradient(45deg,#bef26b,#bef26b 6px,#fffacf 6px,#fffacf 12px);
+  }
+  /* Liked-route variant */
+  .route-card.liked .thumb{
+    background:linear-gradient(150deg,#ff4f6d,#ff2442 58%,#e41c59);
+  }
+  .route-card.liked .signup{ background:var(--red); color:#fff;}
+
+  /* customize button */
+  .map-customize{
+    position:absolute; right:14px; top:108px; z-index:14;
+    background:#fff; border-radius:999px; padding:8px 12px;
+    font-size:11px; font-weight:800; color:#1d1d1f;
+    border:1px solid rgba(0,0,0,.06);
+    box-shadow:0 6px 16px rgba(0,0,0,.08);
+    display:flex; align-items:center; gap:5px;
+  }
+
+  /* ---------- Match scene (S4) ---------- */
+  .match-screen{
+    position:absolute; inset:0;
+    background:#fff;
+  }
+  .match-head{
+    position:absolute; top:46px; left:0; right:0; height:48px;
+    display:flex; align-items:center; padding:0 16px; gap:8px;
+    z-index:18;
+  }
+  .match-head{ display:none; }
+  .match-head .back{ font-size:24px; line-height:1; color:#222;}
+  .match-head h2{ font-size:16px; font-weight:900;}
+  .match-head .sub{ font-size:11px; color:#999; margin-left:6px;}
+  /* Status filter */
+  .status-filter{
+    position:absolute; top:138px; left:0; right:0; padding:0 12px;
+    display:flex; gap:6px; overflow-x:auto;
+    z-index:14;
+  }
+  .status-filter::-webkit-scrollbar{display:none}
+  .status-pill{
+    flex-shrink:0; padding:7px 12px; border-radius:999px;
+    background:#f6f6f7; color:#444;
+    font-size:12px; font-weight:700;
+    display:inline-flex; align-items:center; gap:4px;
+  }
+  .status-pill.on{ background:#1d1d1f; color:#fff;}
+  /* Match map */
+  .match-map{
+    position:absolute; left:0; right:0; top:182px; bottom:170px;
+    overflow:hidden;
+  }
+  .match-substrip{
+    position:absolute; top:98px; left:0; right:0;
+    display:flex; gap:8px; overflow-x:auto; padding:8px 12px 6px;
+    z-index:15;
+    background:#fff;
+    border-bottom:1px solid #f2f2f3;
+  }
+  .match-substrip::-webkit-scrollbar{ display:none; }
+  .match-shop-pin{
+    cursor:pointer;
+  }
+  .match-shop-pin .label{
+    background:#fff; color:#1d1d1f; border:1px solid #ebebee;
+  }
+  .match-shop-pin.selected .label{
+    background:linear-gradient(135deg,#ff7a90,#ff2442);
+    color:#fff; border-color:transparent;
+  }
+  .match-barrage{
+    position:absolute; left:10px; right:10px; top:8px; height:70px;
+    border-radius:14px; background:rgba(246,247,249,.94);
+    border:1px solid rgba(0,0,0,.08);
+    box-shadow:0 8px 18px rgba(0,0,0,.1);
+    overflow:hidden; z-index:16; padding:10px 14px;
+  }
+  .match-barrage.hide{ display:none; }
+  .match-barrage .track{
+    position:relative; width:100%; height:100%;
+  }
+  .match-barrage-msg{
+    position:absolute; right:-120%;
+    color:#2a2a30; font-size:12px; font-weight:700; white-space:nowrap;
+    animation: barrageSlide 5.8s linear forwards;
+  }
+  @keyframes barrageSlide{
+    from{ transform:translateX(0); opacity:0; }
+    8%{ opacity:1; }
+    92%{ opacity:1; }
+    to{ transform:translateX(-230%); opacity:0; }
+  }
+  /* People cards strip */
+  .match-strip{
+    position:absolute; left:0; right:0; bottom:64px; height:170px;
+    z-index:14;
+    background:linear-gradient(to top, #fff 70%, transparent);
+    padding:14px 12px 10px;
+  }
+  .match-strip h4{
+    font-size:13px; font-weight:900; display:flex; align-items:center; justify-content:space-between;
+  }
+  .match-strip h4 small{ font-size:11px; color:#999; font-weight:600;}
+  .match-strip .scroll{
+    margin-top:8px; display:flex; gap:8px; overflow-x:auto; padding-bottom:6px;
+  }
+  .match-strip .scroll::-webkit-scrollbar{display:none}
+  .person-card{
+    flex-shrink:0; width:128px;
+    background:#fff; border:1px solid #efefef; border-radius:14px;
+    padding:10px; box-shadow:0 4px 10px rgba(0,0,0,.05);
+  }
+  .person-card .top{
+    display:flex; align-items:center; gap:6px;
+  }
+  .person-card .avatar{
+    width:30px; height:30px; border-radius:50%; flex-shrink:0;
+  }
+  .person-card .avatar.a1{ background:linear-gradient(135deg,#ffd6e2,#ff7a9b);}
+  .person-card .avatar.a2{ background:linear-gradient(135deg,#fce6ad,#f7a85a);}
+  .person-card .avatar.a3{ background:linear-gradient(135deg,#cfe5ff,#7aa3ff);}
+  .person-card .avatar.a4{ background:linear-gradient(135deg,#dcf3c5,#9bd56d);}
+  .person-card .name{ font-size:12px; font-weight:800;}
+  .person-card .meta{ font-size:10px; color:#999; margin-top:1px;}
+  .person-card .status{
+    margin-top:8px; font-size:11px; color:#444; line-height:1.4;
+    background:#fff7f4; border-left:2px solid var(--red); padding:5px 7px; border-radius:0 6px 6px 0;
+  }
+  .person-card .ping{
+    margin-top:8px; height:26px; border-radius:999px;
+    background:var(--red); color:#fff; font-size:11px; font-weight:800;
+    display:flex; align-items:center; justify-content:center; gap:4px;
+  }
+
+  /* ---------- Checkin / Note draft (S5) ---------- */
+  .ck-screen{
+    position:absolute; inset:0;
+    background:#fff;
+  }
+  .ck-head{
+    position:absolute; top:146px; left:0; right:0; height:50px;
+    display:flex; align-items:center; padding:0 14px; gap:8px;
+    z-index:18; border-bottom:1px solid #f3f3f3; background:#fff;
+  }
+  .ck-head .back{ font-size:22px;}
+  .ck-head h3{ font-size:16px; font-weight:900;}
+  .ck-head .pub{
+    margin-left:auto; padding:6px 14px; border-radius:999px;
+    background:var(--red); color:#fff; font-size:12px; font-weight:800;
+  }
+  .ck-body{
+    position:absolute; left:0; right:0; top:196px; bottom:64px;
+    overflow:auto; padding:12px;
+  }
+  .ck-body::-webkit-scrollbar{display:none}
+  .ck-aiBadge{
+    display:inline-flex; align-items:center; gap:5px;
+    background:linear-gradient(135deg,#ff7a90,#ff2442); color:#fff;
+    padding:5px 10px; border-radius:999px;
+    font-size:11px; font-weight:800;
+  }
+  .ck-photos{
+    margin-top:10px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;
+  }
+  .ck-photo{
+    aspect-ratio:1; border-radius:10px;
+    border:1px dashed #e2e2e3;
+    overflow:hidden;
+    position:relative;
+  }
+  .ck-photo.p1{ background:linear-gradient(135deg,#ffd6e2,#ff7a9b);}
+  .ck-photo.p2{ background:linear-gradient(135deg,#fce6ad,#f7a85a);}
+  .ck-photo.p3{ background:linear-gradient(150deg,#d8f3c4,#a8d889);}
+  .ck-photo.add{
+    background:#f6f6f7; border:1px dashed #d4d4d8;
+    display:flex; align-items:center; justify-content:center;
+    color:#bbb; font-size:24px; font-weight:300;
+  }
+  .ck-title{
+    margin-top:14px;
+    font-size:18px; font-weight:900; line-height:1.35;
+    color:#1d1d1f;
+    min-height:24px;
+  }
+  .ck-text{
+    margin-top:10px; font-size:13.5px; line-height:1.7; color:#3a3a40;
+    min-height:18px;
+  }
+  .ck-text .typing-caret::after{
+    content:"|"; color:var(--red); font-weight:900;
+    animation: caret 1s steps(1) infinite;
+  }
+  .ck-tags{
+    margin-top:14px; display:flex; flex-wrap:wrap; gap:6px;
+  }
+  .ck-tag{
+    color:var(--red); font-size:13px; font-weight:700;
+  }
+  .ck-loc{
+    margin-top:14px; padding:10px 12px;
+    background:#f8f8f8; border-radius:12px;
+    display:flex; align-items:center; gap:8px;
+    font-size:12px; color:#444; font-weight:600;
+  }
+  .ck-loc .dot{ color:var(--red);}
+
+  /* ============ CURSOR ============ */
+  .cursor{
+    position:absolute;
+    width:28px; height:28px;
+    z-index:200;
+    pointer-events:none;
+    transition: transform .9s cubic-bezier(.22,1,.36,1), opacity .3s;
+    will-change: transform;
+    left:0; top:0;
+  }
+  .cursor svg{ width:100%; height:100%; filter: drop-shadow(0 4px 8px rgba(0,0,0,.25));}
+  .cursor::after{
+    content:""; position:absolute; left:50%; top:50%;
+    width:42px; height:42px; border-radius:50%;
+    border:2px solid var(--red);
+    transform:translate(-50%,-50%) scale(0);
+    opacity:0;
+  }
+  .cursor.tap::after{
+    animation: tapRipple .55s ease;
+  }
+  @keyframes tapRipple{
+    0%{ transform:translate(-50%,-50%) scale(.4); opacity:.85;}
+    100%{ transform:translate(-50%,-50%) scale(1.4); opacity:0;}
+  }
+
+  /* ============ SCROLL CHAPTERS ============ */
+  .chapter{ height:100vh; }
+  .chapter.first{ position:relative; }
+  /* used by JS to compute progress */
+
+  /* small helpers */
+  .hide{ display:none !important; }
+  .pulse{ animation: pulseBox 1.4s infinite ease-out;}
+  @keyframes pulseBox{
+    0%{ box-shadow:0 0 0 0 rgba(255,36,66,.5);}
+    100%{ box-shadow:0 0 0 16px rgba(255,36,66,0);}
+  }
+
+  /* keywords incoming arrow connector */
+  .kw-arrow{
+    margin-top:12px; padding:10px 12px;
+    background:#fff; border:1px dashed var(--red-line); border-radius:12px;
+    font-size:11px; color:#666; line-height:1.55;
+  }
+  .kw-arrow b{ color:var(--red); font-weight:800;}
+
+  /* responsive */
+  @media (max-width: 1100px){
+    .workspace{ grid-template-columns: 1fr 420px 1fr;}
+    .left-rail, .right-rail{ padding:0 32px;}
+    .chapter-title{ font-size:42px;}
+  }
+  @media (max-width: 900px){
+    .workspace{ grid-template-columns: 1fr 380px 1fr;}
+    .left-rail, .right-rail{ padding:0 18px;}
+    .chapter-title{ font-size:32px;}
+    .chapter-desc{ font-size:14px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="workspace">
+    <!-- LEFT RAIL: chapter narrative -->
+    <aside class="left-rail">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <div>
+          Hi City!
+          <small>City Memo · Demo</small>
+        </div>
+      </div>
+
+      <div id="ch-num" class="chapter-num">Chapter 01 / 05</div>
+      <h1 id="ch-title" class="chapter-title">城市手记 · <em>我的人设</em></h1>
+      <p id="ch-desc" class="chapter-desc">
+        用<span class="hl">标签</span>与<span class="hl">自述</span>说出此刻的你 —— AI 据此生成精准的<span class="hl">场景词</span>，再一键刷新「刷灵感」。
+      </p>
+      <div id="ch-cues" class="chapter-cues"></div>
+    </aside>
+
+    <!-- CENTER: phone -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="screen" id="screen">
+
+          <!-- status bar -->
+          <div class="status-bar">
+            <span>9:41</span>
+            <span class="right-icons">
+              <svg viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="6" width="3" height="6" rx="1"/><rect x="5" y="3" width="3" height="9" rx="1"/><rect x="10" y="0" width="3" height="12" rx="1"/></svg>
+              100%
+            </span>
+          </div>
+
+          <!-- top tabs -->
+          <div class="top-tabs">
+            <button class="top-bar-icon entry" id="tab-entry" aria-label="进入城市手记">
+              <svg viewBox="0 0 24 24">
+                <circle cx="10" cy="8" r="3.8"></circle>
+                <path d="M3.5 19c1.2-3.4 3.7-5.1 6.5-5.1s5.3 1.7 6.5 5.1"></path>
+                <path d="M17 5.5h4"></path>
+                <path d="M19 3.5v4"></path>
+              </svg>
+            </button>
+            <span class="top-tab" id="tab-follow">关注</span>
+            <span class="top-tab active" id="tab-discover">发现</span>
+            <span class="top-tab city" id="tab-city">南京 <span class="arrow">▾</span></span>
+            <button class="top-bar-icon search" aria-label="搜索">
+              <svg viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="6.5"></circle>
+                <path d="M16 16l5 5"></path>
+              </svg>
+            </button>
+          </div>
+
+          <section class="city-picker" id="city-picker">
+            <div class="city-head">
+              <button class="city-back" id="city-back">‹</button>
+              <div class="city-search">🔍 搜索城市</div>
+            </div>
+            <div class="city-main-tabs">
+              <button class="city-main-tab on" data-city-tab="domestic">国内城市</button>
+              <button class="city-main-tab" data-city-tab="overseas">海外城市</button>
+            </div>
+            <div class="city-panels">
+              <div class="city-panel on" id="city-panel-domestic">
+                <div class="city-block">
+                  <h4>定位/当前选中城市</h4>
+                  <button class="city-current city-option" data-city="南京">南京</button>
+                </div>
+                <div class="city-block">
+                  <h4>热门城市</h4>
+                  <div class="city-grid">
+                    <button class="city-chip city-option" data-city="北京">北京</button>
+                    <button class="city-chip city-option" data-city="上海">上海</button>
+                    <button class="city-chip city-option" data-city="成都">成都</button>
+                    <button class="city-chip city-option" data-city="深圳">深圳</button>
+                    <button class="city-chip city-option" data-city="广州">广州</button>
+                    <button class="city-chip city-option" data-city="重庆">重庆</button>
+                    <button class="city-chip city-option" data-city="西安">西安</button>
+                    <button class="city-chip city-option" data-city="武汉">武汉</button>
+                    <button class="city-chip city-option" data-city="杭州">杭州</button>
+                    <button class="city-chip city-option" data-city="郑州">郑州</button>
+                    <button class="city-chip city-option" data-city="南京">南京</button>
+                    <button class="city-chip city-option" data-city="长沙">长沙</button>
+                  </div>
+                </div>
+                <div class="city-alpha">
+                  <h5>A</h5>
+                  <div class="city-row city-option" data-city="阿坝藏族羌族自治州">阿坝藏族羌族自治州</div>
+                  <div class="city-row city-option" data-city="阿克苏地区">阿克苏地区</div>
+                  <div class="city-row city-option" data-city="阿拉善盟">阿拉善盟</div>
+                  <div class="city-row city-option" data-city="阿勒泰地区">阿勒泰地区</div>
+                  <div class="city-row city-option" data-city="阿里地区">阿里地区</div>
+                  <div class="city-row city-option" data-city="安康市">安康市</div>
+                  <div class="city-row city-option" data-city="安庆市">安庆市</div>
+                </div>
+              </div>
+
+              <div class="city-panel" id="city-panel-overseas">
+                <div class="city-overseas">
+                  <div class="continent-list" id="continent-list">
+                    <button class="continent-item on" data-continent="current">当前城市</button>
+                    <button class="continent-item" data-continent="asia">亚洲</button>
+                    <button class="continent-item" data-continent="north-america">北美洲</button>
+                    <button class="continent-item" data-continent="europe">欧洲</button>
+                    <button class="continent-item" data-continent="oceania">大洋洲</button>
+                    <button class="continent-item" data-continent="africa">非洲</button>
+                  </div>
+                  <div class="continent-content">
+                    <div class="city-block">
+                      <h4>定位/当前选中的城市</h4>
+                      <button class="city-current city-option" data-city="费城">费城</button>
+                    </div>
+                    <div class="city-block">
+                      <h4>热门城市</h4>
+                      <div class="city-grid">
+                        <button class="city-chip city-option" data-city="新加坡">新加坡</button>
+                        <button class="city-chip city-option" data-city="吉隆坡">吉隆坡</button>
+                        <button class="city-chip city-option" data-city="大阪">大阪</button>
+                        <button class="city-chip city-option" data-city="首尔">首尔</button>
+                        <button class="city-chip city-option" data-city="清迈">清迈</button>
+                        <button class="city-chip city-option" data-city="马累">马累</button>
+                        <button class="city-chip city-option" data-city="纽约">纽约</button>
+                        <button class="city-chip city-option" data-city="米兰">米兰</button>
+                        <button class="city-chip city-option" data-city="巴黎">巴黎</button>
+                        <button class="city-chip city-option" data-city="莫斯科">莫斯科</button>
+                        <button class="city-chip city-option" data-city="悉尼">悉尼</button>
+                        <button class="city-chip city-option" data-city="开罗">开罗</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ===== SCENES ===== -->
+
+          <!-- S1: PERSONA -->
+          <section class="scene" id="s1">
+            <div class="scene-body">
+              <div class="persona-banner">
+                <h3>城市手记 · 我的人设</h3>
+                <p>勾选标签 · 写一句自述。AI 把你此刻的语境，翻译成精准的场景词，喂给「刷灵感」。</p>
+                <div class="persona-tabs">
+                  <div class="persona-tab on" id="ptab-tags">标签</div>
+                  <div class="persona-tab" id="ptab-story">自述</div>
+                </div>
+              </div>
+
+              <div id="ppanel-tags">
+                <div class="persona-card">
+                  <h4>我是谁</h4>
+                  <div class="hint">单选 · 可跳过</div>
+                  <div class="ptags">
+                    <span class="ptag" data-pick="who">学生党</span>
+                    <span class="ptag on" data-pick="who">上班族</span>
+                    <span class="ptag" data-pick="who">新手爸妈</span>
+                    <span class="ptag" data-pick="who">自由职业</span>
+                  </div>
+                </div>
+                <div class="persona-card">
+                  <h4>城市熟悉度</h4>
+                  <div class="hint">你和这座城市相处了多久</div>
+                  <div class="ptags">
+                    <span class="ptag on" data-pick="fam">老土著</span>
+                    <span class="ptag" data-pick="fam">常住几年</span>
+                    <span class="ptag" data-pick="fam">周末常客</span>
+                    <span class="ptag" data-pick="fam">旅游打卡</span>
+                    <span class="ptag" data-pick="fam">短期出差</span>
+                    <span class="ptag" data-pick="fam">刚来不久</span>
+                  </div>
+                </div>
+                <div class="persona-card">
+                  <h4>社交性格</h4>
+                  <div class="hint">想怎么和人、和空间相处</div>
+                  <div class="ptags">
+                    <span class="ptag on" data-pick="soc">内向慢热</span>
+                    <span class="ptag" data-pick="soc">外向爱聊</span>
+                    <span class="ptag" data-pick="soc">安静旁观</span>
+                    <span class="ptag" data-pick="soc">主动破冰</span>
+                    <span class="ptag" data-pick="soc">随缘佛系</span>
+                  </div>
+                </div>
+                <div class="persona-card">
+                  <h4>兴趣方向</h4>
+                  <div class="hint">可多选 · 与自述一起参与融合</div>
+                  <div class="ptags">
+                    <span class="ptag on" data-pick="int">美食探店</span>
+                    <span class="ptag" data-pick="int">看展演出</span>
+                    <span class="ptag" data-pick="int">运动户外</span>
+                    <span class="ptag on" data-pick="int" id="ptag-coffee">咖啡自习</span>
+                    <span class="ptag" data-pick="int">夜生活</span>
+                    <span class="ptag" data-pick="int">读书沙龙</span>
+                  </div>
+                </div>
+              </div>
+
+              <div id="ppanel-story" class="hide">
+                <div class="persona-card">
+                  <h4>此刻语境</h4>
+                  <div class="hint">写下时间、心情、动线 —— AI 会读懂</div>
+                  <textarea class="persona-textarea" id="persona-text" readonly>周五傍晚人在静安寺一带，想先填饱肚子再看一场不熬夜的小演出。</textarea>
+                </div>
+              </div>
+
+              <div class="persona-footer">
+                <button class="pbtn ghost">清空</button>
+                <button class="pbtn primary" id="persona-save">保存并生成AI场景词</button>
+              </div>
+            </div>
+
+            <!-- keywords overlay -->
+            <div class="kw-overlay" id="kw-layer">
+              <button class="kw-top" id="kw-back">← <span>返回编辑手记</span></button>
+              <h3 style="margin-top:14px">Persona 关键词</h3>
+              <div class="kw-set" id="kw-set"></div>
+
+              <h3 style="margin-top:14px">匹配场景词 <small>AI 推荐 · 可多选</small></h3>
+              <div class="scene-list" id="scene-list">
+                <div class="scene-item" data-scene="0">老门东雨天室内 Plan B 线</div>
+                <div class="scene-item" data-scene="1">雨天室内展览或自习</div>
+                <div class="scene-item" data-scene="2">博物馆 / 美术馆半天动线</div>
+                <div class="scene-item" data-scene="3">味蕾漫游小众馆子拼图</div>
+                <div class="scene-item" data-scene="4">城南展讯一日博物馆线</div>
+                <div class="scene-item" data-scene="5">周末熟人小聚不重样小店</div>
+              </div>
+              <button class="scene-item" id="scene-refresh" style="margin-top:12px; text-align:center; font-size:18px; font-weight:600; color:#a1a1a7;">换一批</button>
+              <button class="kw-cta" id="kw-generate">生成推荐内容</button>
+            </div>
+          </section>
+
+          <!-- S2: DISCOVER FEED -->
+          <section class="scene" id="s2">
+            <div class="scene-body">
+              <div class="discover-strip">
+                <button class="substrip-pill on">刷灵感</button>
+                <button class="substrip-pill">去溜达</button>
+                <button class="substrip-pill">找搭子</button>
+                <button class="substrip-pill">留印记</button>
+              </div>
+              <div class="hero-banner">
+                <span class="pill">🔥 已按你的人设重排</span>
+                <h2 id="hero-title">老门东 · 慢逛吃饱组</h2>
+                <div class="meta" id="hero-meta">周六 17:30 · 南京老门东</div>
+                <button class="cta">报名 →</button>
+              </div>
+              <div class="waterfall" id="waterfall"></div>
+            </div>
+          </section>
+
+          <!-- S3: MAP / ROUTES -->
+          <section class="scene" id="s3">
+            <div class="map-screen">
+              <div class="map-substrip" id="map-substrip">
+                <button class="substrip-pill">刷灵感</button>
+                <button class="substrip-pill on">去溜达</button>
+                <button class="substrip-pill">找搭子</button>
+                <button class="substrip-pill">留印记</button>
+              </div>
+              <!-- Streets -->
+              <svg class="map-streets" viewBox="0 0 380 700" preserveAspectRatio="none">
+                <path d="M-20 220 L 420 130" stroke="#fff" stroke-width="22" fill="none" opacity=".9"/>
+                <path d="M-20 380 L 420 320" stroke="#fff" stroke-width="22" fill="none" opacity=".9"/>
+                <path d="M-20 540 L 420 480" stroke="#fff" stroke-width="22" fill="none" opacity=".9"/>
+                <path d="M120 -10 L 80 720" stroke="#fff" stroke-width="22" fill="none" opacity=".9"/>
+                <path d="M250 -10 L 280 720" stroke="#fff" stroke-width="22" fill="none" opacity=".9"/>
+              </svg>
+              <!-- Green blocks -->
+              <div class="map-blocks">
+                <div class="block" style="left:18px; top:138px; width:88px; height:78px;"></div>
+                <div class="block" style="left:160px; top:96px; width:78px; height:74px;"></div>
+                <div class="block" style="left:265px; top:140px; width:96px; height:80px;"></div>
+                <div class="block" style="left:18px; top:330px; width:80px; height:80px;"></div>
+                <div class="block" style="left:118px; top:380px; width:90px; height:60px;"></div>
+                <div class="block" style="left:260px; top:380px; width:96px; height:84px;"></div>
+                <div class="block" style="left:18px; top:540px; width:90px; height:84px;"></div>
+                <div class="block" style="left:260px; top:540px; width:96px; height:84px;"></div>
+              </div>
+
+              <!-- Route toggle -->
+              <div class="route-toggle" id="route-toggle">
+                <button class="on" data-route="ai">AI 推荐</button>
+                <button class="liked-tab" data-route="liked"><span class="dot"></span>点赞过 <span id="liked-count">2</span></button>
+                <button class="custom-tab" data-route="custom">✎ 自定义路线</button>
+              </div>
+
+              <svg class="route-lines" id="route-lines" viewBox="0 0 380 700" preserveAspectRatio="none">
+                <polyline id="custom-route-line" points=""></polyline>
+              </svg>
+
+              <!-- Pins (AI default) -->
+              <div id="pins-ai">
+                <div class="map-pin" style="left:80px; top:200px;">
+                  <div class="label outline dark">🍜 老门东</div>
+                  <div class="tail white" style="border-top-color:#fff"></div>
+                </div>
+                <div class="map-pin" style="left:230px; top:240px;">
+                  <div class="label hot">🔥 科巷夜市</div>
+                  <div class="tail hot"></div>
+                </div>
+                <div class="map-pin" style="left:170px; top:340px;">
+                  <div class="label you">📍 你</div>
+                  <div class="tail dark"></div>
+                </div>
+                <div class="map-pin" style="left:90px; top:430px;">
+                  <div class="label outline green">🌙 夫子庙</div>
+                  <div class="tail white" style="border-top-color:#fff"></div>
+                </div>
+                <div class="map-pin" style="left:260px; top:510px;">
+                  <div class="label outline purple">☕ 颐和路</div>
+                  <div class="tail white" style="border-top-color:#fff"></div>
+                </div>
+                <div class="map-pin" style="left:285px; top:165px;">
+                  <div class="label outline dark">🎨 博物馆</div>
+                  <div class="tail white" style="border-top-color:#fff"></div>
+                </div>
+              </div>
+              <!-- Pins (Liked variant) -->
+              <div id="pins-liked" class="hide">
+                <div class="map-pin liked-pick" data-place="老门东" data-note="点赞优先站点，建议先逛后吃" data-x="80" data-y="210" style="left:80px; top:210px;">
+                  <div class="label" style="background:var(--red); color:#fff;">♡ 老门东</div>
+                  <div class="tail" style="border-top-color:var(--red);"></div>
+                </div>
+                <div class="map-pin" style="left:170px; top:340px;">
+                  <div class="label you">📍 你</div>
+                  <div class="tail dark"></div>
+                </div>
+                <div class="map-pin liked-pick" data-place="颐和路" data-note="点赞咖啡点，适合停留 60 分钟" data-x="240" data-y="420" style="left:240px; top:420px;">
+                  <div class="label" style="background:var(--red); color:#fff;">♡ 颐和路</div>
+                  <div class="tail" style="border-top-color:var(--red);"></div>
+                </div>
+              </div>
+              <!-- Pins (Custom selectable) -->
+              <div id="pins-custom" class="hide">
+                <div class="map-pin selectable" data-place="老门东" data-note="夜游主线入口，先吃后逛" data-x="88" data-y="215" style="left:88px; top:215px;">
+                  <div class="label">🍜 老门东 <span class="idx"></span></div>
+                  <div class="tail white" style="border-top-color:#fff"></div>
+                </div>
+                <div class="map-pin selectable" data-place="科巷夜市" data-note="夜市补给，推荐 40 分钟" data-x="230" data-y="255" style="left:230px; top:255px;">
+                  <div class="label">🔥 科巷夜市 <span class="idx"></span></div>
+                  <div class="tail white" style="border-top-color:#fff"></div>
+                </div>
+                <div class="map-pin selectable" data-place="夫子庙" data-note="沿河步行收尾，拍照夜景" data-x="160" data-y="410" style="left:160px; top:410px;">
+                  <div class="label">🌙 夫子庙 <span class="idx"></span></div>
+                  <div class="tail white" style="border-top-color:#fff"></div>
+                </div>
+                <div class="map-pin selectable" data-place="颐和路" data-note="安静咖啡坐一小时" data-x="260" data-y="495" style="left:260px; top:495px;">
+                  <div class="label">☕ 颐和路 <span class="idx"></span></div>
+                  <div class="tail white" style="border-top-color:#fff"></div>
+                </div>
+                <div class="map-pin selectable" data-place="博物馆" data-note="展讯补位，雨天可替换" data-x="292" data-y="172" style="left:292px; top:172px;">
+                  <div class="label">🎨 博物馆 <span class="idx"></span></div>
+                  <div class="tail white" style="border-top-color:#fff"></div>
+                </div>
+              </div>
+
+              <div class="itinerary-sheet" id="itinerary-sheet">
+                <div class="itinerary-handle"></div>
+                <div class="itinerary-head">
+                  <h3>AI 生成行程安排</h3>
+                  <button class="spark">✨ 为你定制</button>
+                </div>
+                <div class="itinerary-summary" id="itinerary-summary">根据你点赞的 0 条 + AI 推荐，串成一条 4 小时 · 走 3 站的城市动线。</div>
+                <div class="itinerary-controls">
+                  <span>开始</span>
+                  <span class="itinerary-time">06:30 PM</span>
+                  <span>时长</span>
+                  <span class="itinerary-slider"></span>
+                  <span style="min-width:40px;text-align:right;color:#222;font-weight:900;">4 小时</span>
+                </div>
+                <div class="itinerary-empty" id="itinerary-empty">点击地图上任一站点，加入今晚路线；或回到内容流多点几个赞。</div>
+                <div class="itinerary-list hide" id="itinerary-list"></div>
+                <button class="custom-gen hide" id="custom-generate">生成AI行程安排</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- S4: MATCH (people) -->
+          <section class="scene" id="s4">
+            <div class="match-screen">
+              <div class="match-head">
+                <span class="back">‹</span>
+                <h2>同状态的人</h2>
+                <span class="sub">基于你此刻的人设匹配</span>
+              </div>
+              <div class="match-substrip" id="match-substrip">
+                <button class="substrip-pill">刷灵感</button>
+                <button class="substrip-pill">去溜达</button>
+                <button class="substrip-pill on">找搭子</button>
+                <button class="substrip-pill">留印记</button>
+              </div>
+              <div class="status-filter">
+                <span class="status-pill on">📍 附近</span>
+                <span class="status-pill">咖啡自习</span>
+                <span class="status-pill" id="filter-foodie">想吃汤包</span>
+                <span class="status-pill">看展</span>
+                <span class="status-pill">遛弯</span>
+              </div>
+              <div class="match-map">
+                <svg class="map-streets" viewBox="0 0 380 460" preserveAspectRatio="none" style="background:#fbf6e8">
+                  <path d="M-20 140 L 420 90" stroke="#fff" stroke-width="20"/>
+                  <path d="M-20 280 L 420 240" stroke="#fff" stroke-width="20"/>
+                  <path d="M120 -10 L 80 480" stroke="#fff" stroke-width="20"/>
+                  <path d="M260 -10 L 290 480" stroke="#fff" stroke-width="20"/>
+                </svg>
+                <div class="map-blocks">
+                  <div class="block" style="left:18px; top:38px; width:84px; height:64px;"></div>
+                  <div class="block" style="left:170px; top:120px; width:74px; height:60px;"></div>
+                  <div class="block" style="left:265px; top:60px; width:90px; height:70px;"></div>
+                  <div class="block" style="left:38px; top:240px; width:80px; height:64px;"></div>
+                  <div class="block" style="left:240px; top:280px; width:96px; height:74px;"></div>
+                </div>
+                <div id="match-pins-default">
+                  <!-- Match pins (people default) -->
+                  <div class="map-pin" style="left:90px; top:90px;">
+                    <div class="label outline dark">☕ Lily</div><div class="tail white" style="border-top-color:#fff"></div>
+                  </div>
+                  <div class="map-pin" style="left:230px; top:130px;">
+                    <div class="label hot">🔥 6 同好</div><div class="tail hot"></div>
+                  </div>
+                  <div class="map-pin" style="left:170px; top:230px;">
+                    <div class="label you">📍 你</div><div class="tail dark"></div>
+                  </div>
+                  <div class="map-pin" style="left:80px; top:330px;">
+                    <div class="label outline green">🍜 Bobo</div><div class="tail white" style="border-top-color:#fff"></div>
+                  </div>
+                  <div class="map-pin" style="left:280px; top:340px;">
+                    <div class="label outline purple">🎨 Ken</div><div class="tail white" style="border-top-color:#fff"></div>
+                  </div>
+                </div>
+                <div id="match-pins-foodie" class="hide">
+                  <div class="map-pin match-shop-pin" data-shop="金陵汤包总店" style="left:92px; top:108px;">
+                    <div class="label">🥟 金陵汤包总店</div><div class="tail white" style="border-top-color:#fff"></div>
+                  </div>
+                  <div class="map-pin match-shop-pin" data-shop="科巷现蒸汤包" style="left:248px; top:124px;">
+                    <div class="label">🥟 科巷现蒸汤包</div><div class="tail white" style="border-top-color:#fff"></div>
+                  </div>
+                  <div class="map-pin" style="left:170px; top:230px;">
+                    <div class="label you">📍 你</div><div class="tail dark"></div>
+                  </div>
+                  <div class="map-pin match-shop-pin" data-shop="夫子庙老牌灌汤" style="left:96px; top:318px;">
+                    <div class="label">🥟 夫子庙老牌灌汤</div><div class="tail white" style="border-top-color:#fff"></div>
+                  </div>
+                  <div class="map-pin match-shop-pin" data-shop="梧桐巷夜宵汤包" style="left:286px; top:342px;">
+                    <div class="label">🥟 梧桐巷夜宵汤包</div><div class="tail white" style="border-top-color:#fff"></div>
+                  </div>
+                </div>
+                <div class="match-barrage hide" id="match-barrage">
+                  <div class="track" id="match-barrage-track"></div>
+                </div>
+              </div>
+              <div class="match-strip">
+                <h4>3 人和你状态相近 <small>200m 内</small></h4>
+                <div class="scroll" id="people-scroll">
+                  <div class="person-card">
+                    <div class="top">
+                      <div class="avatar a1"></div>
+                      <div>
+                        <div class="name">Lily · 27</div>
+                        <div class="meta">90m · 上班族</div>
+                      </div>
+                    </div>
+                    <div class="status">「下班想找间能坐久的咖啡馆」</div>
+                    <div class="ping">say hi 👋</div>
+                  </div>
+                  <div class="person-card">
+                    <div class="top">
+                      <div class="avatar a2"></div>
+                      <div>
+                        <div class="name">Bobo · 25</div>
+                        <div class="meta">160m · 老土著</div>
+                      </div>
+                    </div>
+                    <div class="status">「想吃热汤包，求带」</div>
+                    <div class="ping">say hi 👋</div>
+                  </div>
+                  <div class="person-card">
+                    <div class="top">
+                      <div class="avatar a3"></div>
+                      <div>
+                        <div class="name">Ken · 29</div>
+                        <div class="meta">240m · 自由职业</div>
+                      </div>
+                    </div>
+                    <div class="status">「找看展搭子，今晚 7 点」</div>
+                    <div class="ping">say hi 👋</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- S5: CHECKIN -->
+          <section class="scene" id="s5">
+            <div class="ck-screen">
+              <div class="match-substrip" id="ck-substrip">
+                <button class="substrip-pill">刷灵感</button>
+                <button class="substrip-pill">去溜达</button>
+                <button class="substrip-pill">找搭子</button>
+                <button class="substrip-pill on">留印记</button>
+              </div>
+              <div class="ck-head">
+                <span class="back">‹</span>
+                <h3>发布城市记忆</h3>
+                <button class="pub" id="ck-pub">发布</button>
+              </div>
+              <div class="ck-body">
+                <span class="ck-aiBadge">✨ AI 已生成草稿</span>
+                <div class="ck-photos">
+                  <div class="ck-photo p1"></div>
+                  <div class="ck-photo p2"></div>
+                  <div class="ck-photo p3"></div>
+                </div>
+                <h2 class="ck-title" id="ck-title"></h2>
+                <div class="ck-text" id="ck-text"></div>
+                <div class="ck-tags" id="ck-tags"></div>
+                <div class="ck-loc">
+                  <span class="dot">📍</span>
+                  <span>南京 · 老门东 → 颐和路梧桐角咖啡</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- bottom nav -->
+          <div class="bottom-nav">
+            <span class="nav-item active">首页</span>
+            <span class="nav-item">购物</span>
+            <span class="nav-item add">+</span>
+            <span class="nav-item">消息</span>
+            <span class="nav-item">我</span>
+          </div>
+
+          <!-- cursor -->
+          <div class="cursor" id="cursor">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M3 2 L 21 11 L 13 13 L 11 21 Z" fill="#fff" stroke="#1d1d1f" stroke-width="1.4" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+        </div><!-- /screen -->
+      </div><!-- /phone -->
+    </div>
+
+    <!-- RIGHT RAIL: chapter steps + controls -->
+    <aside class="right-rail">
+      <div class="step-rail" id="step-rail">
+        <div class="step-row" data-ch="0"><div class="num">1</div><div class="body"><h4>城市手记 · 我的人设</h4><p>标签 + 自述 → AI 关键词 → 场景词</p></div></div>
+        <div class="step-row" data-ch="1"><div class="num">2</div><div class="body"><h4>可推荐 · 内容流为你重排</h4><p>关键词驱动「刷灵感」精准推送</p></div></div>
+        <div class="step-row" data-ch="2"><div class="num">3</div><div class="body"><h4>可逛 · 串成今晚路线</h4><p>AI 推荐 / 点赞过 双视角切换</p></div></div>
+        <div class="step-row" data-ch="3"><div class="num">4</div><div class="body"><h4>可约 · 同状态的人</h4><p>地图找同好 · 直接 say hi</p></div></div>
+        <div class="step-row" data-ch="4"><div class="num">5</div><div class="body"><h4>可打卡 · 城市记忆</h4><p>AI 一键生成小红书风格草稿</p></div></div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="controls">
+        <button class="ctrl-btn" id="play-btn"><span class="ico">▶</span> 自动播放</button>
+        <button class="ctrl-btn ghost" id="restart-btn">↺ 重播本章</button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- scroll chapters -->
+  <div class="chapter" id="ch0"></div>
+  <div class="chapter" id="ch1"></div>
+  <div class="chapter" id="ch2"></div>
+  <div class="chapter" id="ch3"></div>
+  <div class="chapter" id="ch4"></div>
+</div>
+
+<script>
+/* =========================================================================
+   Hi City! Demo Walkthrough
+   - 5 chapters, scroll-driven OR auto-play
+   - Cursor moves around the phone, taps elements, page reacts
+   ========================================================================= */
+
+const chapterMeta = [
+  {
+    num: "Chapter 01 / 05",
+    title: '城市手记 · <em>我的人设</em>',
+    desc: '用 <span class="hl">标签</span> 和 <span class="hl">自述</span> 说出此刻的你 — AI 据此生成精准的 <span class="hl">场景词</span>，再一键刷新「刷灵感」。',
+    cues: ['先选择城市（全程保持统一）', '点击左上图标进入城市手记', '勾选标签 / 生成场景词']
+  },
+  {
+    num: "Chapter 02 / 05",
+    title: '可推荐 · <em>内容流为你重排</em>',
+    desc: '关键词把刷灵感页面 <span class="hl">精准重排</span>。点赞的帖子，会自动同步到下一站「点赞过」路线。',
+    cues: ['看「与你很贴」标签', '点赞两张笔记', '点赞 → 解锁路线']
+  },
+  {
+    num: "Chapter 03 / 05",
+    title: '可逛 · <em>串成今晚路线</em>',
+    desc: 'AI 推荐 是流量最大的<span class="hl">默认路径</span>；切到 <span class="hl">点赞过</span>，就把你刚刚点赞的地点串起来。',
+    cues: ['看 AI 推荐默认路径', '切到「点赞过」', '切到「自定义路线」选点并生成 AI 行程']
+  },
+  {
+    num: "Chapter 04 / 05",
+    title: '可约 · <em>同状态的人</em>',
+    desc: '基于你此刻的人设状态，匹配 <span class="hl">200m 内的同好</span>。点一个状态词，就能直接 say hi。',
+    cues: ['筛选「想吃汤包」', '地图同步刷新', 'say hi 直接发起']
+  },
+  {
+    num: "Chapter 05 / 05",
+    title: '可打卡 · <em>城市记忆</em>',
+    desc: '一天结束，AI 把你走过的路、点赞的人、聊过的话，<span class="hl">写成一篇小红书草稿</span>，标题、正文、tag 自动备好。',
+    cues: ['自动拉入今日轨迹', 'AI 写标题与正文', '一键发布城市记忆']
+  }
+];
+
+const $ = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+const cursor = $("#cursor");
+const screenEl = $("#screen");
+const cityPickerEl = $('#city-picker');
+let selectedCity = '南京';
+
+let currentChapter = -1;
+let auto = false;
+let autoTimer = null;
+let runId = 0; // increments to abort in-flight chapter scripts
+
+/* ---------- cursor helper ---------- */
+function moveCursorTo(target, opts={}){
+  return new Promise(resolve => {
+    const sRect = screenEl.getBoundingClientRect();
+    let x, y;
+    if (typeof target === 'string') target = $(target);
+    if (target instanceof Element){
+      const r = target.getBoundingClientRect();
+      x = r.left + r.width/2 - sRect.left;
+      y = r.top + r.height/2 - sRect.top;
+    } else {
+      x = target.x; y = target.y;
+    }
+    cursor.style.transform = `translate(${x-14}px, ${y-14}px)`;
+    setTimeout(resolve, opts.dur ?? 900);
+  });
+}
+
+function tapAt(){
+  cursor.classList.remove('tap');
+  void cursor.offsetWidth;
+  cursor.classList.add('tap');
+}
+
+async function tap(target, opts={}){
+  await moveCursorTo(target, opts);
+  await wait(120);
+  tapAt();
+  await wait(opts.afterTap ?? 380);
+}
+
+async function orbitCursorAround(target, opts={}){
+  const el = typeof target === 'string' ? $(target) : target;
+  if (!el) return;
+  const sRect = screenEl.getBoundingClientRect();
+  const r = el.getBoundingClientRect();
+  const cx = r.left + r.width/2 - sRect.left;
+  const cy = r.top + r.height/2 - sRect.top;
+  const radius = opts.radius ?? 26;
+  const loops = opts.loops ?? 1;
+  const steps = opts.steps ?? 18;
+  const delay = opts.delay ?? 26;
+  const total = loops * steps;
+  for (let i = 0; i <= total; i++){
+    const a = (i / steps) * Math.PI * 2;
+    const x = cx + Math.cos(a) * radius;
+    const y = cy + Math.sin(a) * radius;
+    cursor.style.transform = `translate(${x-14}px, ${y-14}px)`;
+    await wait(delay);
+  }
+}
+
+async function traceCursorRect(target, opts={}){
+  const el = typeof target === 'string' ? $(target) : target;
+  if (!el) return;
+  const sRect = screenEl.getBoundingClientRect();
+  const r = el.getBoundingClientRect();
+  const pad = opts.pad ?? 6;
+  const x1 = r.left - sRect.left - pad;
+  const y1 = r.top - sRect.top - pad;
+  const x2 = r.right - sRect.left + pad;
+  const y2 = r.bottom - sRect.top + pad;
+  const step = opts.step ?? 8;
+  const delay = opts.delay ?? 14;
+
+  const points = [];
+  for (let x = x1; x <= x2; x += step) points.push({x, y:y1}); // top
+  for (let y = y1; y <= y2; y += step) points.push({x:x2, y}); // right
+  for (let x = x2; x >= x1; x -= step) points.push({x, y:y2}); // bottom
+  for (let y = y2; y >= y1; y -= step) points.push({x:x1, y}); // left
+
+  for (const p of points){
+    cursor.style.transform = `translate(${p.x-14}px, ${p.y-14}px)`;
+    await wait(delay);
+  }
+}
+
+function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+/* ---------- scenes show/hide ---------- */
+function showScene(id){
+  $$('.scene').forEach(s=>s.classList.toggle('on', s.id===id));
+  // sync top tabs
+  const isPersona = id==='s1';
+  $('#tab-discover').classList.toggle('active', !isPersona && id==='s2');
+  $('#tab-follow').classList.toggle('active', false);
+  // when we're not on s2, keep discover active visually for s1 entry
+  if (id==='s1') $('#tab-discover').classList.add('active');
+}
+
+function openCityPicker(){
+  cityPickerEl.classList.add('on');
+}
+
+function closeCityPicker(){
+  cityPickerEl.classList.remove('on');
+}
+
+function setCityTab(tab){
+  $$('.city-main-tab').forEach(el => el.classList.toggle('on', el.dataset.cityTab === tab));
+  $('#city-panel-domestic').classList.toggle('on', tab === 'domestic');
+  $('#city-panel-overseas').classList.toggle('on', tab === 'overseas');
+}
+
+function applySelectedCity(){
+  $('#tab-city').innerHTML = `${selectedCity} <span class="arrow">▾</span>`;
+  $$('.city-option').forEach(el => {
+    const isCurrent = el.dataset.city === selectedCity;
+    el.classList.toggle('active', isCurrent && el.classList.contains('city-chip'));
+    if (el.classList.contains('city-current')) el.textContent = selectedCity;
+  });
+}
+
+const customPins = () => $$('#pins-custom .map-pin.selectable');
+const likedPins = () => $$('#pins-liked .map-pin.liked-pick');
+let routeMode = 'ai';
+
+function setRouteMode(mode){
+  routeMode = mode;
+  $$('#route-toggle button').forEach(b => b.classList.toggle('on', b.dataset.route === mode));
+  $('#pins-ai').classList.toggle('hide', mode !== 'ai');
+  $('#pins-liked').classList.toggle('hide', mode !== 'liked');
+  $('#pins-custom').classList.toggle('hide', mode !== 'custom');
+  const summary = $('#itinerary-summary');
+  const empty = $('#itinerary-empty');
+  const list = $('#itinerary-list');
+  const gen = $('#custom-generate');
+  const line = $('#custom-route-line');
+
+  if (mode === 'ai'){
+    summary.textContent = '根据你点赞的 0 条 + AI 推荐，串成一条 4 小时 · 走 3 站的城市动线。';
+    empty.textContent = '默认展示 AI 推荐动线，可切到「点赞过」或「自定义路线」继续调整。';
+    empty.classList.remove('hide');
+    list.classList.add('hide');
+    gen.classList.add('hide');
+    line.setAttribute('points', '');
+  } else if (mode === 'liked'){
+    summary.textContent = `根据你点赞的 ${$('#liked-count').textContent} 条 + AI 推荐，串成一条 4 小时 · 走 3 站的城市动线。`;
+    empty.textContent = '请在点赞过里选择 2 个地标，再生成路线与 AI 行程安排。';
+    empty.classList.remove('hide');
+    list.classList.add('hide');
+    gen.classList.remove('hide');
+    gen.textContent = '生成AI行程安排';
+    likedPins().forEach(pin => pin.classList.remove('selected'));
+    line.setAttribute('points', '');
+  } else {
+    summary.textContent = '点击地图地标加入路线，AI 会自动生成路径与行程安排。';
+    empty.textContent = '至少选择 2 个地标后，点击下方按钮生成路线。';
+    empty.classList.remove('hide');
+    list.classList.add('hide');
+    gen.classList.remove('hide');
+    gen.textContent = '生成AI行程安排';
+    renderCustomRoute();
+  }
+}
+
+function renderCustomRoute(){
+  const selected = customPins().filter(p => p.classList.contains('selected'));
+  selected.forEach((pin, idx) => {
+    const idxEl = pin.querySelector('.idx');
+    if (idxEl) idxEl.textContent = String(idx + 1);
+  });
+  const points = selected.map(pin => `${pin.dataset.x},${pin.dataset.y}`).join(' ');
+  $('#custom-route-line').setAttribute('points', points);
+  const summary = $('#itinerary-summary');
+  if (routeMode === 'custom'){
+    summary.textContent = `已选 ${selected.length} 站，生成后将输出 4 小时夜游路线与停留建议。`;
+  }
+}
+
+function renderLikedRoute(){
+  const selected = likedPins().filter(p => p.classList.contains('selected'));
+  const points = selected.map(pin => `${pin.dataset.x},${pin.dataset.y}`).join(' ');
+  $('#custom-route-line').setAttribute('points', points);
+  if (routeMode === 'liked'){
+    $('#itinerary-summary').textContent = `点赞过已选 ${selected.length} 站，生成后将优先串联你点赞的地点。`;
+  }
+}
+
+function generateCustomPlan(){
+  const selected = customPins().filter(p => p.classList.contains('selected'));
+  if (selected.length < 2) return;
+  const list = $('#itinerary-list');
+  const empty = $('#itinerary-empty');
+  const summary = $('#itinerary-summary');
+  list.innerHTML = selected.map((pin, idx) => `
+    <article class="trip-item">
+      <h4>${idx+1}. ${pin.dataset.place}</h4>
+      <p>${pin.dataset.note}</p>
+    </article>
+  `).join('');
+  summary.textContent = `AI 已生成 ${selected.length} 站路线：总时长 4 小时，步行与停留节奏已自动编排。`;
+  empty.classList.add('hide');
+  list.classList.remove('hide');
+}
+
+function generateLikedPlan(){
+  const selected = likedPins().filter(p => p.classList.contains('selected'));
+  if (selected.length < 2) return;
+  const list = $('#itinerary-list');
+  const empty = $('#itinerary-empty');
+  const summary = $('#itinerary-summary');
+  list.innerHTML = selected.map((pin, idx) => `
+    <article class="trip-item">
+      <h4>${idx+1}. ${pin.dataset.place}</h4>
+      <p>${pin.dataset.note}</p>
+    </article>
+  `).join('');
+  summary.textContent = `点赞过路线已生成：优先串联 ${selected.length} 个点赞地标，并补齐 4 小时行程节奏。`;
+  empty.classList.add('hide');
+  list.classList.remove('hide');
+}
+
+let barrageTimer = null;
+const barrageMessagesByShop = {
+  '金陵汤包总店': ['刚出笼，队伍 8 分钟', '蟹黄偏鲜，皮薄汤足', '店里有两人正在拼桌'],
+  '科巷现蒸汤包': ['门口排队快，翻台很稳', '附近同好 6 人在逛吃', '适合先吃再去看展'],
+  '夫子庙老牌灌汤': ['夜场氛围热闹，拍照出片', '这一家蘸醋比例很绝', '附近步行 5 分钟可到河边'],
+  '梧桐巷夜宵汤包': ['营业到 23:30，适合晚场', '同状态用户正在集合', '店旁边有咖啡店可续摊']
+};
+
+function hideMatchBarrage(){
+  if (barrageTimer){
+    clearTimeout(barrageTimer);
+    barrageTimer = null;
+  }
+  $('#match-barrage-track').innerHTML = '';
+  $('#match-barrage').classList.add('hide');
+}
+
+function resetMatchView(){
+  $$('#match-substrip .substrip-pill').forEach((tab, idx) => tab.classList.toggle('on', idx === 2));
+  $$('.status-pill').forEach((pill, idx) => pill.classList.toggle('on', idx === 0));
+  $('#match-pins-default').classList.remove('hide');
+  $('#match-pins-foodie').classList.add('hide');
+  $$('.match-shop-pin').forEach(pin => pin.classList.remove('selected'));
+  hideMatchBarrage();
+  $$('.person-card .ping').forEach(btn => {
+    btn.style.background = '';
+    btn.textContent = 'say hi 👋';
+  });
+}
+
+function setMatchKeyword(mode){
+  if (mode === 'foodie'){
+    $('#match-pins-default').classList.add('hide');
+    $('#match-pins-foodie').classList.remove('hide');
+    return;
+  }
+  $('#match-pins-default').classList.remove('hide');
+  $('#match-pins-foodie').classList.add('hide');
+  $$('.match-shop-pin').forEach(pin => pin.classList.remove('selected'));
+  hideMatchBarrage();
+}
+
+function launchShopBarrage(shop){
+  const base = barrageMessagesByShop[shop] || ['实时附近状态同步中', '有人正在拼桌', '可直接 say hi 发起邀请'];
+  const lines = [
+    `📍 ${shop} · 1 分钟前有人到店`,
+    `🔥 ${shop} 附近同状态 6 人在线`,
+    '👋 正在寻找「想吃汤包」搭子',
+    ...base.map(msg => `💬 ${msg}`)
+  ];
+  const track = $('#match-barrage-track');
+  track.innerHTML = '';
+  $('#match-barrage').classList.remove('hide');
+
+  lines.forEach((text, idx) => {
+    const item = document.createElement('span');
+    item.className = 'match-barrage-msg';
+    item.style.top = `${2 + (idx % 3) * 18}px`;
+    item.style.animationDelay = `${idx * 0.55}s`;
+    item.textContent = text;
+    track.appendChild(item);
+  });
+
+  if (barrageTimer) clearTimeout(barrageTimer);
+  barrageTimer = setTimeout(() => hideMatchBarrage(), 6200);
+}
+
+function setNarrative(i){
+  const m = chapterMeta[i];
+  $('#ch-num').textContent = m.num;
+  $('#ch-title').innerHTML = m.title;
+  $('#ch-desc').innerHTML = m.desc;
+  const cues = $('#ch-cues');
+  cues.innerHTML = m.cues.map((c, idx) =>
+    `<div class="cue"><span class="cue-dot">${idx+1}</span>${c}</div>`).join('');
+  $$('.step-row').forEach((row, idx)=>{
+    row.classList.toggle('on', idx===i);
+    row.classList.toggle('done', idx<i);
+  });
+  $('#progress-fill').style.width = `${(i+1)/5*100}%`;
+}
+
+/* ---------- waterfall builder for S2 ---------- */
+const waterfallNotes = [
+  { type:'quote', text:'今晚的你<br>是一个想慢慢探索这座城市的人', author:'Hi City! AI', likes:0, tag:null },
+  { cover:'cf1', title:'老门东汤包 + 梧弄夜灯｜慢慢逛不挤胃', tag:'和你「美食探店」很贴', author:'城市收集', likes:1821, key:'lao-men-dong' },
+  { cover:'cf3', title:'颐和路梧桐下｜能坐一下午的咖啡角落', tag:'和你「咖啡自习」很贴', author:'本地闲逛', likes:964, key:'yihe-coffee' },
+  { cover:'cf2', title:'南京 1912 街区 · 不熬夜的小演出', tag:null, author:'夜场观察', likes:432 },
+  { cover:'cf4', title:'雨天宁愿窝进的独立书店', tag:null, author:'书店地图', likes:728 },
+  { cover:'cf5', title:'晚饭后两小时松弛逛法', tag:null, author:'慢游小队', likes:312 }
+];
+
+function renderWaterfall(){
+  const root = $('#waterfall');
+  root.innerHTML = '';
+  waterfallNotes.forEach((n, i) => {
+    const el = document.createElement('article');
+    el.className = 'note';
+    el.dataset.idx = i;
+    if (n.key) el.dataset.key = n.key;
+    if (n.type==='quote'){
+      el.innerHTML = `
+        <div class="note-cover quote"><div class="qt">${n.text}</div></div>
+        <div class="note-body">
+          <div class="note-meta">
+            <span class="author"><i></i>${n.author}</span>
+            <span class="like" data-like><span class="heart">♡</span> <span class="num">${n.likes}</span></span>
+          </div>
+        </div>`;
+    } else {
+      el.innerHTML = `
+        <div class="note-cover ${n.cover}"></div>
+        <div class="note-body">
+          <div class="note-title">${n.title}</div>
+          ${n.tag ? `<span class="note-tag">${n.tag}</span>` : ''}
+          <div class="note-meta">
+            <span class="author"><i></i>${n.author}</span>
+            <span class="like" data-like><span class="heart">♡</span> <span class="num">${n.likes}</span></span>
+          </div>
+        </div>`;
+    }
+    root.appendChild(el);
+  });
+  $$('.note [data-like]').forEach(el => {
+    el.addEventListener('click', () => toggleLike(el));
+  });
+}
+
+function toggleLike(el){
+  const liked = el.classList.toggle('liked');
+  const numEl = el.querySelector('.num');
+  let n = parseInt(numEl.textContent, 10) || 0;
+  numEl.textContent = liked ? (n+1) : Math.max(0, n-1);
+  el.querySelector('.heart').textContent = liked ? '♥' : '♡';
+  // update liked count badge on map
+  const allLiked = $$('.note .like.liked').length;
+  $('#liked-count').textContent = allLiked;
+}
+
+/* ---------- per-chapter scripts ---------- */
+async function runChapter(i){
+  const myRun = ++runId;
+  const ok = () => myRun === runId;
+  setNarrative(i);
+
+  if (i===0) await chapter1(ok);
+  else if (i===1) await chapter2(ok);
+  else if (i===2) await chapter3(ok);
+  else if (i===3) await chapter4(ok);
+  else if (i===4) await chapter5(ok);
+}
+
+/* ---- chapter 1: persona ---- */
+async function chapter1(ok){
+  // reset
+  showScene('s2');
+  closeCityPicker();
+  setCityTab('domestic');
+  selectedCity = '南京';
+  applySelectedCity();
+  $('#s1').classList.remove('kw-active');
+  $('#ppanel-tags').classList.remove('hide');
+  $('#ppanel-story').classList.add('hide');
+  $('#ptab-tags').classList.add('on');
+  $('#ptab-story').classList.remove('on');
+  $('#persona-text').value = '';
+  $('#s1 .scene-body').scrollTo({top:0, behavior:'auto'});
+  $$('.ptag').forEach(t => t.classList.remove('on'));
+  const bootTags = ['上班族','老土著','内向慢热','美食探店','咖啡自习'];
+  $$('.ptag').forEach(t => {
+    if (bootTags.includes(t.textContent.trim())) t.classList.add('on');
+  });
+  cursor.style.opacity = 1;
+
+  await wait(550); if (!ok()) return;
+
+  // 1) 先选城市，后续章节不再改动
+  await tap('#tab-city', {dur:900}); if (!ok()) return;
+  openCityPicker();
+  setCityTab('domestic');
+  await wait(450); if (!ok()) return;
+
+  const nanjing = $('#city-panel-domestic .city-option[data-city="南京"]');
+  await tap(nanjing, {dur:900}); if (!ok()) return;
+  selectedCity = '南京';
+  applySelectedCity();
+  closeCityPicker();
+  await wait(520); if (!ok()) return;
+
+  // 2) 点击左上图标进入城市手记
+  await tap('#tab-entry', {dur:820}); if (!ok()) return;
+  showScene('s1');
+  await wait(420); if (!ok()) return;
+
+  // 标签逐一选择
+  const tagSequence = ['看展演出','运动户外','咖啡自习'];
+  for (const name of tagSequence){
+    const tag = $$('.ptag').find(t => t.textContent.trim() === name);
+    if (!tag) continue;
+    await tap(tag); if (!ok()) return;
+    tag.classList.add('on');
+    await wait(240); if (!ok()) return;
+  }
+  const body = $('#s1 .scene-body');
+  body.scrollTo({top: body.scrollHeight, behavior:'smooth'});
+  await wait(720); if (!ok()) return;
+
+  // 滑到底后点击保存并生成 AI 场景词
+  await tap('#persona-save'); if (!ok()) return;
+
+  // 生成 AI 关键词和匹配场景词页
+  const kwSet = $('#kw-set');
+  kwSet.innerHTML = '';
+  ['上班族','老土著','内向慢热','美食探店','运动户外','看展演出','咖啡自习','雨天语境'].forEach((k, idx)=>{
+    const el = document.createElement('span');
+    el.className = 'kw-chip';
+    el.textContent = k;
+    el.style.animationDelay = `${idx*0.08}s`;
+    kwSet.appendChild(el);
+  });
+  $$('.scene-item').forEach(item => {
+    item.classList.remove('on');
+    item.innerHTML = item.textContent;
+  });
+  $('#s1').classList.add('kw-active');
+  await wait(1400); if (!ok()) return;
+
+  // 先选择场景词，再回到编辑手记补充自述
+  const sceneSequence = [0, 1, 2];
+  for (const idx of sceneSequence){
+    const item = $(`[data-scene="${idx}"]`);
+    await tap(item, {dur:760}); if (!ok()) return;
+    item.classList.add('on');
+    item.innerHTML = `${item.textContent.replace('✓','').trim()} <span class="check">✓</span>`;
+    await wait(260); if (!ok()) return;
+  }
+
+  // 之后展示自述部分的操作
+  await tap('#kw-back', {dur:760}); if (!ok()) return;
+  $('#s1').classList.remove('kw-active');
+  body.scrollTo({top:0, behavior:'smooth'});
+  await wait(520); if (!ok()) return;
+
+  await tap('#ptab-story'); if (!ok()) return;
+  $('#ptab-story').classList.add('on');
+  $('#ptab-tags').classList.remove('on');
+  $('#ppanel-tags').classList.add('hide');
+  $('#ppanel-story').classList.remove('hide');
+  await wait(320); if (!ok()) return;
+
+  const story = '周五傍晚静安寺一带，想先吃点热乎的，再看一场不熬夜的小演出。';
+  await typeInto('#persona-text', story, ok); if (!ok()) return;
+  await wait(360); if (!ok()) return;
+
+  // 自述完成后点击保存并生成 AI 场景词，再回到场景词页点击生成推荐内容结束
+  await tap('#persona-save', {dur:860}); if (!ok()) return;
+  kwSet.innerHTML = '';
+  ['上班族','老土著','内向慢热','美食探店','运动户外','看展演出','咖啡自习','雨天语境'].forEach((k, idx)=>{
+    const el = document.createElement('span');
+    el.className = 'kw-chip';
+    el.textContent = k;
+    el.style.animationDelay = `${idx*0.08}s`;
+    kwSet.appendChild(el);
+  });
+  $('#s1').classList.add('kw-active');
+  await wait(760); if (!ok()) return;
+  await tap('#kw-generate', {dur:860}); if (!ok()) return;
+}
+
+async function typeInto(sel, text, ok){
+  const el = $(sel);
+  el.value = '';
+  el.classList.add('typing');
+  const r = el.getBoundingClientRect(), sr = screenEl.getBoundingClientRect();
+  await moveCursorTo({x:r.left-sr.left+20, y:r.top-sr.top+20});
+  for (let i=0; i<text.length; i++){
+    if (!ok()) return;
+    el.value += text[i];
+    await wait(35);
+  }
+  el.classList.remove('typing');
+}
+
+/* ---- chapter 2: feed + likes ---- */
+async function chapter2(ok){
+  showScene('s2');
+  closeCityPicker();
+  const body = $('#s2 .scene-body');
+  body.scrollTo({top:0, behavior:'auto'});
+  // reset likes
+  $$('.note .like.liked').forEach(el=>{
+    el.classList.remove('liked');
+    el.querySelector('.heart').textContent = '♡';
+    const n = el.querySelector('.num');
+    n.textContent = Math.max(0, parseInt(n.textContent,10)-1);
+  });
+  $('#liked-count').textContent = '0';
+
+  await wait(650); if (!ok()) return;
+
+  // 鼠标沿“已按你的人设重排”提示框外边缘绕一圈（更明显，不压在字上）
+  await traceCursorRect('.hero-banner .pill', {pad:14, step:10, delay:18}); if (!ok()) return;
+  await wait(180); if (!ok()) return;
+
+  // scroll the body just a tiny bit so user sees the "和你很贴"
+  body.scrollTo({top:0, behavior:'smooth'});
+  await wait(400); if (!ok()) return;
+
+  // tap like on 老门东
+  const lao = $('#waterfall .note[data-key="lao-men-dong"] [data-like]');
+  await tap(lao, {dur:1100}); if (!ok()) return;
+  toggleLike(lao);
+  await wait(700); if (!ok()) return;
+
+  // 先把第二篇目标帖子滑入可视区，再进行第二次点赞
+  const yhNote = $('#waterfall .note[data-key="yihe-coffee"]');
+  yhNote.scrollIntoView({behavior:'smooth', block:'center', inline:'nearest'});
+  await wait(820); if (!ok()) return;
+
+  // tap like on 颐和路 coffee
+  const yh = $('#waterfall .note[data-key="yihe-coffee"] [data-like]');
+  await tap(yh, {dur:900}); if (!ok()) return;
+  toggleLike(yh);
+  await wait(900); if (!ok()) return;
+}
+
+/* ---- chapter 3: routes ---- */
+async function chapter3(ok){
+  showScene('s3');
+  $('#liked-count').textContent = '2';
+  const mapSubTabs = $$('#map-substrip .substrip-pill');
+  mapSubTabs.forEach((tab, idx) => tab.classList.toggle('on', idx === 1));
+  // reset to AI route
+  customPins().forEach(pin => pin.classList.remove('selected'));
+  likedPins().forEach(pin => pin.classList.remove('selected'));
+  renderCustomRoute();
+  renderLikedRoute();
+  setRouteMode('ai');
+
+  await wait(700); if (!ok()) return;
+
+  // 1) 默认值展示：停留在 AI 推荐默认态，不做选点动作
+  await wait(1100); if (!ok()) return;
+
+  // 2) 点赞过：选两个标记点并生成路线 + AI 行程安排
+  await tap('#route-toggle button.liked-tab', {dur:900}); if (!ok()) return;
+  setRouteMode('liked');
+  await wait(560); if (!ok()) return;
+
+  const likedPickOrder = ['老门东', '颐和路'];
+  for (const place of likedPickOrder){
+    const pin = likedPins().find(p => p.dataset.place === place);
+    if (!pin) continue;
+    await tap(pin, {dur:800}); if (!ok()) return;
+    pin.classList.add('selected');
+    renderLikedRoute();
+    await wait(260); if (!ok()) return;
+  }
+  await tap('#custom-generate', {dur:840}); if (!ok()) return;
+  generateLikedPlan();
+  await wait(900); if (!ok()) return;
+
+  // 3) 自定义路线：选几个标记点并生成路线 + AI 行程安排
+  await tap('#route-toggle button.custom-tab', {dur:900}); if (!ok()) return;
+  setRouteMode('custom');
+  await wait(420); if (!ok()) return;
+
+  const picks = ['老门东','科巷夜市','夫子庙'];
+  for (const place of picks){
+    const pin = customPins().find(p => p.dataset.place === place);
+    if (!pin) continue;
+    await tap(pin, {dur:820}); if (!ok()) return;
+    pin.classList.add('selected');
+    renderCustomRoute();
+    await wait(260); if (!ok()) return;
+  }
+
+  await tap('#custom-generate', {dur:860}); if (!ok()) return;
+  generateCustomPlan();
+  await wait(1000); if (!ok()) return;
+}
+
+/* ---- chapter 4: match ---- */
+async function chapter4(ok){
+  showScene('s4');
+  resetMatchView();
+  await wait(700); if (!ok()) return;
+
+  // 同 chapter2 入口样式，保持「找搭子」红色高亮
+  const matchTabs = $$('#match-substrip .substrip-pill');
+  const matchTabBuddy = matchTabs[2];
+  if (matchTabBuddy){
+    await tap(matchTabBuddy, {dur:760}); if (!ok()) return;
+    matchTabs.forEach((tab, idx) => tab.classList.toggle('on', idx === 2));
+    await wait(260); if (!ok()) return;
+  }
+
+  // 先点关键词「想吃汤包」
+  await tap('#filter-foodie'); if (!ok()) return;
+  $$('.status-pill').forEach(p => p.classList.remove('on'));
+  $('#filter-foodie').classList.add('on');
+  setMatchKeyword('foodie');
+  await wait(500); if (!ok()) return;
+
+  // 地图出现高流量汤包店，选一家后弹出实时弹幕
+  const shop = $$('.match-shop-pin')[1] || $$('.match-shop-pin')[0];
+  await tap(shop, {dur:900}); if (!ok()) return;
+  $$('.match-shop-pin').forEach(pin => pin.classList.remove('selected'));
+  shop.classList.add('selected');
+  launchShopBarrage(shop.dataset.shop);
+  await wait(850); if (!ok()) return;
+  await wait(3000); if (!ok()) return;
+
+  // 点击 say hi 发邀请
+  const hi = $$('.person-card .ping')[1];
+  await tap(hi, {dur:1100}); if (!ok()) return;
+  hi.style.background = '#1d1d1f';
+  hi.textContent = '已发送 ✓';
+  await wait(700); if (!ok()) return;
+}
+
+/* ---- chapter 5: checkin ---- */
+async function chapter5(ok){
+  showScene('s5');
+  const ckTabs = $$('#ck-substrip .substrip-pill');
+  ckTabs.forEach((tab, idx) => tab.classList.toggle('on', idx === 3));
+  $('#ck-title').textContent = '';
+  $('#ck-text').innerHTML = '';
+  $('#ck-tags').innerHTML = '';
+
+  await wait(600); if (!ok()) return;
+  const ckTabMark = ckTabs[3];
+  if (ckTabMark){
+    await tap(ckTabMark, {dur:760}); if (!ok()) return;
+    await wait(240); if (!ok()) return;
+  }
+
+  // type title
+  await typeRich('#ck-title', '南京周五｜先吃饱再去看一场不熬夜的小演出', ok, 35);
+  if (!ok()) return;
+  await wait(300);
+
+  // type body
+  const body = '今天的人设：「上班族 · 老土著 · 看展演出 · 咖啡自习」。\n收工先去老门东挑了笼蟹黄汤包，转角颐和路梧桐下坐到天黑。\n顺手在 Hi City! 和 Bobo 拼了 1912 街区的小演出，回程慢走收尾。';
+  await typeRich('#ck-text', body, ok, 18);
+  if (!ok()) return;
+
+  // tags
+  const tags = ['#南京周五','#老门东汤包','#颐和路咖啡','#不熬夜小演出','#HiCity城市手记'];
+  for (const t of tags){
+    if (!ok()) return;
+    const span = document.createElement('span');
+    span.className = 'ck-tag';
+    span.textContent = t;
+    $('#ck-tags').appendChild(span);
+    await wait(160);
+  }
+
+  await wait(600); if (!ok()) return;
+  // pulse publish
+  $('#ck-pub').classList.add('pulse');
+  await tap('#ck-pub', {dur:1100}); if (!ok()) return;
+}
+
+async function typeRich(sel, text, ok, speed=25){
+  const el = $(sel);
+  el.textContent = '';
+  const r = el.getBoundingClientRect(), sr = screenEl.getBoundingClientRect();
+  await moveCursorTo({x:r.left-sr.left+30, y:r.top-sr.top+10});
+  for (let i=0; i<text.length; i++){
+    if (!ok()) return;
+    if (text[i]==='\n'){
+      el.appendChild(document.createElement('br'));
+    } else {
+      el.appendChild(document.createTextNode(text[i]));
+    }
+    await wait(speed);
+  }
+}
+
+/* ---------- chapter switching ---------- */
+function gotoChapter(i, source){
+  if (i === currentChapter) return;
+  currentChapter = i;
+  runChapter(i);
+}
+
+/* ---------- scroll observer ---------- */
+const chapterEls = $$('.chapter');
+const io = new IntersectionObserver(entries => {
+  if (auto) return; // ignore scroll while auto-playing
+  entries.forEach(e => {
+    if (e.isIntersecting && e.intersectionRatio > 0.55){
+      const idx = parseInt(e.target.id.replace('ch',''),10);
+      gotoChapter(idx, 'scroll');
+    }
+  });
+}, {threshold:[0.2,0.55,0.8]});
+chapterEls.forEach(el => io.observe(el));
+
+/* ---------- click step rail ---------- */
+$$('.step-row').forEach(row => {
+  row.addEventListener('click', () => {
+    const i = parseInt(row.dataset.ch, 10);
+    stopAuto();
+    currentChapter = i;
+    runChapter(i);
+    document.getElementById('ch'+i).scrollIntoView({behavior:'smooth', block:'start'});
+  });
+});
+
+/* ---------- auto-play ---------- */
+function setAutoUI(on){
+  const btn = $('#play-btn');
+  btn.innerHTML = on ? '<span class="ico">⏸</span> 暂停' : '<span class="ico">▶</span> 自动播放';
+}
+async function startAuto(){
+  if (auto) return;
+  auto = true; setAutoUI(true);
+  // start at current chapter
+  for (let i = Math.max(0, currentChapter); i < 5 && auto; i++){
+    document.getElementById('ch'+i).scrollIntoView({behavior:'smooth', block:'start'});
+    currentChapter = i;
+    await runChapter(i);
+    if (!auto) return;
+    await wait(1200);
+  }
+  auto = false; setAutoUI(false);
+}
+function stopAuto(){
+  auto = false; setAutoUI(false);
+}
+
+$('#play-btn').addEventListener('click', () => {
+  if (auto) stopAuto();
+  else startAuto();
+});
+$('#restart-btn').addEventListener('click', () => {
+  runChapter(currentChapter < 0 ? 0 : currentChapter);
+});
+
+$('#tab-city').addEventListener('click', () => {
+  openCityPicker();
+});
+
+$('#tab-entry').addEventListener('click', () => {
+  closeCityPicker();
+  showScene('s1');
+});
+
+$('#kw-back').addEventListener('click', () => {
+  $('#s1').classList.remove('kw-active');
+});
+
+$('#city-back').addEventListener('click', () => {
+  closeCityPicker();
+});
+
+$('#tab-discover').addEventListener('click', () => {
+  closeCityPicker();
+  showScene('s2');
+});
+
+$$('.city-main-tab').forEach(tab => {
+  tab.addEventListener('click', () => setCityTab(tab.dataset.cityTab));
+});
+
+$$('.continent-item').forEach(item => {
+  item.addEventListener('click', () => {
+    $$('.continent-item').forEach(el => el.classList.remove('on'));
+    item.classList.add('on');
+  });
+});
+
+$$('.city-option').forEach(option => {
+  option.addEventListener('click', () => {
+    selectedCity = '南京';
+    applySelectedCity();
+    closeCityPicker();
+  });
+});
+
+$$('#route-toggle button').forEach(btn => {
+  btn.addEventListener('click', () => setRouteMode(btn.dataset.route));
+});
+
+$$('#map-substrip .substrip-pill').forEach(tab => {
+  tab.addEventListener('click', () => {
+    $$('#map-substrip .substrip-pill').forEach(el => el.classList.remove('on'));
+    tab.classList.add('on');
+  });
+});
+
+$$('#match-substrip .substrip-pill').forEach(tab => {
+  tab.addEventListener('click', () => {
+    $$('#match-substrip .substrip-pill').forEach(el => el.classList.remove('on'));
+    tab.classList.add('on');
+  });
+});
+
+$$('#ck-substrip .substrip-pill').forEach(tab => {
+  tab.addEventListener('click', () => {
+    $$('#ck-substrip .substrip-pill').forEach(el => el.classList.remove('on'));
+    tab.classList.add('on');
+  });
+});
+
+$$('.status-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    $$('.status-pill').forEach(el => el.classList.remove('on'));
+    pill.classList.add('on');
+    setMatchKeyword(pill.id === 'filter-foodie' ? 'foodie' : 'default');
+  });
+});
+
+$$('.match-shop-pin').forEach(pin => {
+  pin.addEventListener('click', () => {
+    if ($('#match-pins-foodie').classList.contains('hide')) return;
+    $$('.match-shop-pin').forEach(el => el.classList.remove('selected'));
+    pin.classList.add('selected');
+    launchShopBarrage(pin.dataset.shop);
+  });
+});
+
+$$('.person-card .ping').forEach(btn => {
+  btn.addEventListener('click', () => {
+    btn.style.background = '#1d1d1f';
+    btn.textContent = '已发送 ✓';
+  });
+});
+
+customPins().forEach(pin => {
+  pin.addEventListener('click', () => {
+    if (routeMode !== 'custom') return;
+    pin.classList.toggle('selected');
+    renderCustomRoute();
+  });
+});
+
+likedPins().forEach(pin => {
+  pin.addEventListener('click', () => {
+    if (routeMode !== 'liked') return;
+    pin.classList.toggle('selected');
+    renderLikedRoute();
+  });
+});
+
+$('#custom-generate').addEventListener('click', () => {
+  if (routeMode === 'custom') generateCustomPlan();
+  if (routeMode === 'liked') generateLikedPlan();
+});
+
+$$('.ptag').forEach(tag => {
+  tag.addEventListener('click', () => {
+    const group = tag.dataset.pick;
+    if (group !== 'int'){
+      $$(`.ptag[data-pick="${group}"]`).forEach(el => el.classList.remove('on'));
+    }
+    tag.classList.toggle('on', group !== 'int' ? true : !tag.classList.contains('on'));
+  });
+});
+
+$$('.scene-item[data-scene]').forEach(item => {
+  item.addEventListener('click', () => {
+    item.classList.toggle('on');
+    item.innerHTML = item.classList.contains('on')
+      ? `${item.textContent.replace('✓','').trim()} <span class="check">✓</span>`
+      : item.textContent.replace('✓','').trim();
+  });
+});
+
+/* ---------- init ---------- */
+renderWaterfall();
+setNarrative(0);
+showScene('s2');
+applySelectedCity();
+setRouteMode('ai');
+// run chapter 0 once on load
+setTimeout(() => {
+  currentChapter = 0;
+  runChapter(0);
+}, 600);
+</script>
+
+</body>
+</html>
